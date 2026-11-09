@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import {
   LEVEL_LABELS,
@@ -30,6 +30,9 @@ const HINTS: Partial<Record<TripField, string>> = {
 
 type Action = (prev: TripFormState, formData: FormData) => Promise<TripFormState>;
 
+/** id do formulário: os botões de status no topo da página usam form={TRIP_FORM_ID}. */
+export const TRIP_FORM_ID = "trip-form";
+
 export function TripForm({
   action,
   initial,
@@ -40,6 +43,14 @@ export function TripForm({
   submitLabel: string;
 }) {
   const [state, formAction] = useActionState<TripFormState, FormData>(action, {});
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Se voltou com erro, leva a tela até o primeiro campo com problema
+  // (importante quando o envio veio de um botão lá no topo).
+  useEffect(() => {
+    if (!state.errors) return;
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [state]);
   const values = state.values ?? initial;
   const errors = state.errors ?? {};
   const [pricingMode, setPricingMode] = useState(values.pricing_mode);
@@ -69,7 +80,7 @@ export function TripForm({
     ) : null;
 
   return (
-    <form action={formAction} className="space-y-8" noValidate>
+    <form ref={formRef} id={TRIP_FORM_ID} action={formAction} className="space-y-8" noValidate>
       <Section title="A viagem">
         <div>
           <label htmlFor="title" className="field-label">

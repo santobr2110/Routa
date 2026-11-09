@@ -15,7 +15,7 @@ import {
   type TripFormState,
   type TripFormValues,
 } from "@/lib/trips";
-import type { Database, TripStatus } from "@/types/database";
+import type { Database } from "@/types/database";
 
 type TripInsert = Database["public"]["Tables"]["trips"]["Insert"];
 
@@ -171,10 +171,18 @@ export async function updateTrip(
   const parsed = parseTrip(formData);
   if (!parsed.data) return { errors: parsed.errors, values: parsed.values };
 
+  // Os botões de status (Publicar, Encerrar…) enviam o formulário inteiro com next_status:
+  // assim o que foi mudado nos campos é salvo junto, nunca perdido.
+  const nextStatus = z
+    .enum(["draft", "published", "closed"])
+    .optional()
+    .catch(undefined)
+    .parse(formData.get("next_status") ?? undefined);
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("trips")
-    .update(parsed.data)
+    .update(nextStatus ? { ...parsed.data, status: nextStatus } : parsed.data)
     .eq("id", tripId)
     .select("id")
     .single();
@@ -195,25 +203,6 @@ export async function updateTrip(
   revalidatePath("/painel");
   revalidatePath(`/painel/viagens/${tripId}`);
   return { saved: true, values: parsed.values };
-}
-
-export async function setTripStatus(tripId: string, status: TripStatus) {
-  await requireOrganizer();
-  if (!["draft", "published", "closed"].includes(status)) return;
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("trips")
-    .update({ status })
-    .eq("id", tripId)
-    .select("id")
-    .single();
-  revalidatePath("/painel");
-  revalidatePath(`/painel/viagens/${tripId}`);
-  if (error) {
-    console.error("setTripStatus", tripId, status, error);
-    redirect(`/painel/viagens/${tripId}?erro=status`);
-  }
-  redirect(`/painel/viagens/${tripId}`);
 }
 
 // =====================================================================

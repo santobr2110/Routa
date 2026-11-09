@@ -7,10 +7,10 @@ import { tripUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, shareMessage, type TripFormValues } from "@/lib/trips";
 import type { TripStatus } from "@/types/database";
-import { setTripStatus, updateTrip } from "../actions";
+import { updateTrip } from "../actions";
 import { PhotoManager } from "../photo-manager";
 import { ShareActions } from "../share-actions";
-import { TripForm } from "../trip-form";
+import { TRIP_FORM_ID, TripForm } from "../trip-form";
 
 export const metadata: Metadata = { title: "Editar viagem" };
 
@@ -20,7 +20,7 @@ export default async function EditarViagemPage({
 }: PageProps<"/painel/viagens/[id]">) {
   const { user } = await requireOrganizer();
   const { id } = await params;
-  const { nova, erro } = await searchParams;
+  const { nova } = await searchParams;
 
   const supabase = await createClient();
   // O RLS só devolve viagens do próprio organizador.
@@ -64,13 +64,6 @@ export default async function EditarViagemPage({
         ← Voltar
       </Link>
 
-      {erro === "status" && (
-        <p className="rounded-xl bg-danger-soft px-4 py-3 font-medium text-danger" role="alert">
-          Não deu para mudar o status da viagem. Tenta de novo; se continuar, confere os campos
-          aqui embaixo e salva antes.
-        </p>
-      )}
-
       {nova && (
         <p className="rounded-xl bg-success-soft px-4 py-3 font-medium text-success" role="status">
           Viagem criada! 🎉 Agora adiciona umas fotos pra deixar a página bonita.
@@ -82,7 +75,7 @@ export default async function EditarViagemPage({
         <StatusBadge status={trip.status} />
       </div>
 
-      <StatusActions tripId={trip.id} status={trip.status} />
+      <StatusActions status={trip.status} />
 
       {trip.status !== "draft" && (
         <ShareActions
@@ -127,11 +120,14 @@ function StatusBadge({ status }: { status: TripStatus }) {
   );
 }
 
-/** Botões para publicar, encerrar ou voltar a viagem para rascunho. */
-function StatusActions({ tripId, status }: { tripId: string; status: TripStatus }) {
+/**
+ * Botões para publicar, encerrar ou voltar para rascunho. Eles enviam o formulário da
+ * viagem (atributo form) com next_status: o que foi mudado nos campos é salvo junto.
+ */
+function StatusActions({ status }: { status: TripStatus }) {
   const buttons: { to: TripStatus; label: string; primary?: boolean }[] =
     status === "draft"
-      ? [{ to: "published", label: "Publicar e abrir inscrições", primary: true }]
+      ? [{ to: "published", label: "Salvar e publicar", primary: true }]
       : status === "published"
         ? [
             { to: "closed", label: "Encerrar inscrições" },
@@ -143,18 +139,22 @@ function StatusActions({ tripId, status }: { tripId: string; status: TripStatus 
     <div className="space-y-2">
       <div className="grid gap-2 sm:grid-cols-2">
         {buttons.map((b) => (
-          <form key={b.to} action={setTripStatus.bind(null, tripId, b.to)}>
-            <button type="submit" className={b.primary ? "btn-primary" : "btn-secondary"}>
-              {b.label}
-            </button>
-          </form>
+          <button
+            key={b.to}
+            type="submit"
+            form={TRIP_FORM_ID}
+            name="next_status"
+            value={b.to}
+            className={b.primary ? "btn-primary" : "btn-secondary"}
+          >
+            {b.label}
+          </button>
         ))}
       </div>
-      {status === "draft" && (
-        <p className="field-hint">
-          Enquanto for rascunho, ninguém consegue ver nem se inscrever.
-        </p>
-      )}
+      <p className="field-hint">
+        {status === "draft" && "Enquanto for rascunho, ninguém consegue ver nem se inscrever. "}
+        Estes botões também salvam o que você mudou no formulário.
+      </p>
     </div>
   );
 }
