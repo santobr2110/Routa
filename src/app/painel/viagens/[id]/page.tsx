@@ -82,6 +82,10 @@ export default async function EditarViagemPage({
         <StatusBadge status={trip.status} />
       </div>
 
+      <Link href={`/painel/viagens/${trip.id}/inscritos`} className="btn-secondary">
+        👥 Ver inscritos ({activeRegistrations ?? 0})
+      </Link>
+
       <StatusActions status={trip.status} />
 
       {!!activeRegistrations && (

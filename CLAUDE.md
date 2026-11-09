@@ -113,6 +113,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
   - Testado com o Supabase real (`0004` aplicada): inscrição com garupa, Pix, WhatsApp repetido e lista de espera.
   - [ ] Revisar o texto da `/privacidade` (não foi revisado por jurídico) e pôr um e-mail de contato da Routa.
 - [x] Botões de status salvam o formulário junto; aviso de inscritos na edição; cópia do termo aceito em cada inscrição (migration `0005`, aplicar no Supabase).
-- [ ] Painel do organizador + CSV
+- [x] Painel de inscritos (`/painel/viagens/[id]/inscritos`): resumo (vagas, pagos, fila), confirmados com Pago/Pendente, WhatsApp e detalhes (e-mail, emergência), filtro por pagamento, lista de espera numerada, CSV (`;`, BOM, proteção contra fórmula). Contagem de inscritos no `/painel` e na edição.
+  - Testado pelo dono com login (pago, filtro, WhatsApp, CSV).
 - [ ] Lista de espera + cancelamento
 - [ ] Deploy na Vercel

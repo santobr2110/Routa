@@ -19,6 +19,19 @@ export default async function PainelPage() {
     .order("start_date", { ascending: false });
   if (error) throw error;
 
+  // Contagem por viagem: confirmados e lista de espera (o RLS só devolve as do organizador).
+  const { data: regs } = await supabase
+    .from("registrations")
+    .select("trip_id, status")
+    .neq("status", "cancelled");
+  const counts = new Map<string, { confirmed: number; waitlist: number }>();
+  for (const r of regs ?? []) {
+    const c = counts.get(r.trip_id) ?? { confirmed: 0, waitlist: 0 };
+    if (r.status === "confirmed") c.confirmed++;
+    else c.waitlist++;
+    counts.set(r.trip_id, c);
+  }
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-extrabold tracking-tight">E aí, {firstName}! 🏍️</h1>
@@ -41,6 +54,7 @@ export default async function PainelPage() {
           <ul className="space-y-3">
             {trips.map((trip) => {
               const cover = [...trip.trip_photos].sort((a, b) => a.position - b.position)[0];
+              const count = counts.get(trip.id);
               return (
                 <li key={trip.id}>
                   <Link
@@ -67,6 +81,9 @@ export default async function PainelPage() {
                       </span>
                       <span className="block text-sm font-semibold text-ink-soft">
                         {STATUS_LABELS[trip.status]}
+                        {count &&
+                          ` · ${count.confirmed} ${count.confirmed === 1 ? "confirmado" : "confirmados"}` +
+                            (count.waitlist ? ` · ${count.waitlist} na fila` : "")}
                       </span>
                     </span>
                   </Link>

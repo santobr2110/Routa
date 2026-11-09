@@ -70,3 +70,17 @@ export function slugify(text: string): string {
 export function formatDateRangeBR(start: string, end: string): string {
   return start === end ? formatDateBR(start) : `${formatDateBR(start)} a ${formatDateBR(end)}`;
 }
+
+/** Data e hora no horário de Brasília: "05/11/2026 14:32". */
+export function formatDateTimeBR(iso: string): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+    .format(new Date(iso))
+    .replace(",", "");
+}
