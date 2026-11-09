@@ -20,6 +20,10 @@ import type { Database, TripStatus } from "@/types/database";
 type TripInsert = Database["public"]["Tables"]["trips"]["Insert"];
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+const optionalTime = z.union([z.literal(""), time]);
+const mapsUrl = z.union([z.literal(""), z.url({ protocol: /^https?$/ }).max(500)]);
+const MAPS_ERROR = "Cola um link que comece com https:// (ex.: do Google Maps).";
 
 const ERRORS: Record<TripField, string> = {
   title: "Dá um título para a viagem (de 3 a 100 letras).",
@@ -27,12 +31,19 @@ const ERRORS: Record<TripField, string> = {
   description: "O roteiro pode ter até 5.000 letras.",
   start_date: "Escolhe a data de saída.",
   end_date: "Escolhe a data de volta (no mesmo dia da saída ou depois).",
-  meeting_point: "Diz onde o grupo se encontra.",
-  meeting_point_url: "Cola um link que comece com https:// (ex.: do Google Maps).",
+  departure_point: "Diz de onde o grupo sai.",
+  departure_point_url: MAPS_ERROR,
+  departure_time: "Coloca o horário de saída.",
+  return_point: "O local de retorno pode ter até 200 letras.",
+  return_point_url: MAPS_ERROR,
+  return_time: "Horário inválido.",
   pricing_mode: "Escolhe como fica o valor.",
-  price: "Coloca o valor por pessoa, ex.: 350 ou 1.250,00.",
+  price: "Coloca o valor do piloto, ex.: 350 ou 1.250,00.",
+  pillion_price: "Coloca o valor de piloto + garupa (igual ou maior que o do piloto), ou deixa vazio se não aceita garupa.",
+  accepts_pillion: "Valor inválido.",
   level: "Escolhe o nível exigido.",
-  terrain: "Escolhe o tipo de terreno.",
+  terrain: "Escolhe o terreno predominante.",
+  terrain_percent: "Coloca quanto % da viagem é nesse terreno (de 1 a 100).",
   capacity: "Quantas motos cabem? (de 1 a 500)",
   pix_key: "Coloca a chave Pix (CPF, e-mail, telefone ou aleatória).",
   terms_text: "O termo precisa ter pelo menos algumas linhas.",
@@ -57,20 +68,38 @@ function parseTrip(formData: FormData) {
   const start_date = check("start_date", isoDate, values.start_date);
   const end_date = check("end_date", isoDate, values.end_date);
   if (start_date && end_date && end_date < start_date) errors.end_date = ERRORS.end_date;
-  const meeting_point = check("meeting_point", z.string().trim().min(3).max(200), values.meeting_point);
-  const meeting_point_url = check(
-    "meeting_point_url",
-    z.union([z.literal(""), z.url({ protocol: /^https?$/ }).max(500)]),
-    values.meeting_point_url.trim(),
-  );
+
+  const departure_point = check("departure_point", z.string().trim().min(3).max(200), values.departure_point);
+  const departure_point_url = check("departure_point_url", mapsUrl, values.departure_point_url.trim());
+  const departure_time = check("departure_time", time, values.departure_time);
+  const return_point = check("return_point", z.string().trim().max(200), values.return_point);
+  const return_point_url = check("return_point_url", mapsUrl, values.return_point_url.trim());
+  const return_time = check("return_time", optionalTime, values.return_time);
+
+  // Valor: piloto e piloto + garupa são valores fechados. Garupa vazia = não aceita garupa.
   const pricing_mode = check("pricing_mode", z.enum(["fixed", "split"]), values.pricing_mode);
   let price_cents: number | null = null;
+  let pillion_price_cents: number | null = null;
+  let accepts_pillion = values.accepts_pillion === "on";
   if (pricing_mode === "fixed") {
     price_cents = parseBRL(values.price);
     if (price_cents === null) errors.price = ERRORS.price;
+    accepts_pillion = values.pillion_price.trim() !== "";
+    if (accepts_pillion) {
+      pillion_price_cents = parseBRL(values.pillion_price);
+      if (pillion_price_cents === null || (price_cents !== null && pillion_price_cents < price_cents)) {
+        errors.pillion_price = ERRORS.pillion_price;
+      }
+    }
   }
+
   const level = check("level", z.enum(["beginner", "intermediate", "experienced"]), values.level);
   const terrain = check("terrain", z.enum(["asphalt", "mixed", "offroad"]), values.terrain);
+  const terrain_percent = check(
+    "terrain_percent",
+    z.coerce.number().int().min(1).max(100),
+    values.terrain_percent,
+  );
   const capacity = check("capacity", z.coerce.number().int().min(1).max(500), values.capacity);
   const pix_key = check("pix_key", z.string().trim().min(3).max(140), values.pix_key);
   const terms_text = check("terms_text", z.string().trim().min(20).max(10000), values.terms_text);
@@ -83,12 +112,19 @@ function parseTrip(formData: FormData) {
     description: description!,
     start_date: start_date!,
     end_date: end_date!,
-    meeting_point: meeting_point!,
-    meeting_point_url: meeting_point_url || null,
+    departure_point: departure_point!,
+    departure_point_url: departure_point_url || null,
+    departure_time: departure_time!,
+    return_point: return_point || null,
+    return_point_url: return_point_url || null,
+    return_time: return_time || null,
     pricing_mode: pricing_mode!,
     price_cents,
+    accepts_pillion,
+    pillion_price_cents,
     level: level!,
     terrain: terrain!,
+    terrain_percent: terrain_percent!,
     capacity: capacity!,
     pix_key: pix_key!,
     terms_text: terms_text!,
@@ -165,9 +201,19 @@ export async function setTripStatus(tripId: string, status: TripStatus) {
   await requireOrganizer();
   if (!["draft", "published", "closed"].includes(status)) return;
   const supabase = await createClient();
-  await supabase.from("trips").update({ status }).eq("id", tripId);
+  const { error } = await supabase
+    .from("trips")
+    .update({ status })
+    .eq("id", tripId)
+    .select("id")
+    .single();
   revalidatePath("/painel");
   revalidatePath(`/painel/viagens/${tripId}`);
+  if (error) {
+    console.error("setTripStatus", tripId, status, error);
+    redirect(`/painel/viagens/${tripId}?erro=status`);
+  }
+  redirect(`/painel/viagens/${tripId}`);
 }
 
 // =====================================================================

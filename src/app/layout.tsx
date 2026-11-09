@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import { ThemeScript } from "@/components/theme-toggle";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -24,7 +25,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} h-full antialiased`}>
+    // "dark" é o padrão; o script tira a classe se a pessoa escolheu o modo claro.
+    // suppressHydrationWarning: o script muda a classe antes do React assumir a página.
+    <html
+      lang="pt-BR"
+      className={`dark ${geistSans.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

@@ -15,7 +15,7 @@ export default async function PerfilPage() {
         <h1 className="text-3xl font-extrabold tracking-tight">
           {organizer ? "Seu perfil" : "Bem-vindo à Routa!"}
         </h1>
-        <p className="text-lg text-stone-700">
+        <p className="text-lg text-ink-soft">
           {organizer
             ? "Esses dados aparecem para quem se inscreve nas suas viagens."
             : "Antes de criar sua primeira viagem, conta pra gente quem é você. Quem se inscrever vai ver seu nome e falar com você pelo WhatsApp."}

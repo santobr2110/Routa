@@ -11,7 +11,7 @@ export function LoginForm() {
 
   if (state.status === "sent") {
     return (
-      <div className="space-y-4 rounded-2xl border-2 border-brand/30 bg-brand-soft p-5" role="status">
+      <div className="space-y-4 rounded-2xl border-2 border-accent/30 bg-brand-soft p-5" role="status">
         <p className="text-xl font-bold">Confira seu e-mail 📬</p>
         <p className="text-lg">
           Mandamos um link de acesso para <strong className="break-all">{state.email}</strong>.

@@ -20,7 +20,7 @@ export function ProfileForm({
   return (
     <form action={formAction} className="space-y-5" noValidate>
       {email && (
-        <p className="text-base text-stone-600">
+        <p className="text-base text-muted">
           Logado como <strong className="break-all">{email}</strong>
         </p>
       )}

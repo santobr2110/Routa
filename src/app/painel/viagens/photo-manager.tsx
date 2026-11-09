@@ -93,8 +93,8 @@ export function PhotoManager({
       {photos.length > 0 && (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {photos.map((photo, i) => (
-            <li key={photo.id} className="overflow-hidden rounded-xl border border-stone-200">
-              <div className="relative aspect-[4/3] bg-stone-100">
+            <li key={photo.id} className="overflow-hidden rounded-xl border border-line">
+              <div className="relative aspect-[4/3] bg-surface-muted">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photoUrl(photo.storage_path)}
@@ -113,7 +113,7 @@ export function PhotoManager({
                     type="button"
                     disabled={busy}
                     onClick={() => run(() => setCoverPhoto(photo.id))}
-                    className="min-h-12 border-t border-stone-200 font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-50"
+                    className="min-h-12 border-t border-line font-semibold text-ink-soft hover:bg-surface-muted disabled:opacity-50"
                   >
                     Usar como capa
                   </button>
@@ -124,7 +124,7 @@ export function PhotoManager({
                   onClick={() => {
                     if (confirm("Remover esta foto?")) run(() => removePhoto(photo.id));
                   }}
-                  className="min-h-12 border-t border-stone-200 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  className="min-h-12 border-t border-line font-semibold text-danger hover:bg-danger-soft disabled:opacity-50"
                 >
                   Remover
                 </button>

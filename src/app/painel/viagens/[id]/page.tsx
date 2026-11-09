@@ -20,7 +20,7 @@ export default async function EditarViagemPage({
 }: PageProps<"/painel/viagens/[id]">) {
   const { user } = await requireOrganizer();
   const { id } = await params;
-  const { nova } = await searchParams;
+  const { nova, erro } = await searchParams;
 
   const supabase = await createClient();
   // O RLS só devolve viagens do próprio organizador.
@@ -39,12 +39,20 @@ export default async function EditarViagemPage({
     description: trip.description,
     start_date: trip.start_date,
     end_date: trip.end_date,
-    meeting_point: trip.meeting_point,
-    meeting_point_url: trip.meeting_point_url ?? "",
+    departure_point: trip.departure_point,
+    departure_point_url: trip.departure_point_url ?? "",
+    departure_time: trip.departure_time?.slice(0, 5) ?? "",
+    return_point: trip.return_point ?? "",
+    return_point_url: trip.return_point_url ?? "",
+    return_time: trip.return_time?.slice(0, 5) ?? "",
     pricing_mode: trip.pricing_mode,
     price: trip.price_cents === null ? "" : centsToInput(trip.price_cents),
+    pillion_price:
+      trip.pillion_price_cents === null ? "" : centsToInput(trip.pillion_price_cents),
+    accepts_pillion: trip.accepts_pillion ? "on" : "",
     level: trip.level,
     terrain: trip.terrain,
+    terrain_percent: String(trip.terrain_percent),
     capacity: String(trip.capacity),
     pix_key: trip.pix_key,
     terms_text: trip.terms_text,
@@ -52,12 +60,19 @@ export default async function EditarViagemPage({
 
   return (
     <div className="space-y-6">
-      <Link href="/painel" className="inline-flex min-h-12 items-center font-semibold text-brand">
+      <Link href="/painel" className="inline-flex min-h-12 items-center font-semibold text-accent">
         ← Voltar
       </Link>
 
+      {erro === "status" && (
+        <p className="rounded-xl bg-danger-soft px-4 py-3 font-medium text-danger" role="alert">
+          Não deu para mudar o status da viagem. Tenta de novo; se continuar, confere os campos
+          aqui embaixo e salva antes.
+        </p>
+      )}
+
       {nova && (
-        <p className="rounded-xl bg-green-50 px-4 py-3 font-medium text-green-900" role="status">
+        <p className="rounded-xl bg-success-soft px-4 py-3 font-medium text-success" role="status">
           Viagem criada! 🎉 Agora adiciona umas fotos pra deixar a página bonita.
         </p>
       )}
@@ -80,10 +95,10 @@ export default async function EditarViagemPage({
         />
       )}
 
-      <section className="space-y-4 rounded-2xl border border-stone-200 bg-white p-4 sm:p-6">
+      <section className="space-y-4 rounded-2xl border border-line bg-surface p-4 sm:p-6">
         <div className="space-y-1">
           <h2 className="text-xl font-bold">Fotos</h2>
-          <p className="text-stone-600">
+          <p className="text-muted">
             Até 5 fotos. A primeira é a capa, que aparece na prévia do WhatsApp.
           </p>
         </div>
@@ -101,9 +116,9 @@ export default async function EditarViagemPage({
 
 function StatusBadge({ status }: { status: TripStatus }) {
   const colors: Record<TripStatus, string> = {
-    draft: "bg-stone-200 text-stone-800",
-    published: "bg-green-100 text-green-900",
-    closed: "bg-amber-100 text-amber-900",
+    draft: "bg-surface-strong text-ink-soft",
+    published: "bg-success-soft text-success",
+    closed: "bg-warn-soft text-warn",
   };
   return (
     <span className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${colors[status]}`}>

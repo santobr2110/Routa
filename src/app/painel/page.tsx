@@ -28,10 +28,10 @@ export default async function PainelPage() {
       </Link>
 
       {trips.length === 0 ? (
-        <section className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-stone-300 bg-white px-6 py-12 text-center">
-          <CompassIcon className="h-12 w-12 text-stone-400" />
+        <section className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-line-strong bg-surface px-6 py-12 text-center">
+          <CompassIcon className="h-12 w-12 text-faint" />
           <h2 className="text-xl font-bold">Nenhuma viagem por aqui ainda</h2>
-          <p className="max-w-sm text-stone-600">
+          <p className="max-w-sm text-muted">
             Cria sua primeira viagem e manda o link pro grupo. Leva poucos minutos.
           </p>
         </section>
@@ -45,7 +45,7 @@ export default async function PainelPage() {
                 <li key={trip.id}>
                   <Link
                     href={`/painel/viagens/${trip.id}`}
-                    className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-3 hover:border-stone-400"
+                    className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-3 hover:border-line-hover"
                   >
                     {cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -55,17 +55,17 @@ export default async function PainelPage() {
                         className="h-16 w-16 shrink-0 rounded-xl object-cover"
                       />
                     ) : (
-                      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-stone-100">
-                        <CompassIcon className="h-8 w-8 text-stone-400" />
+                      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-surface-muted">
+                        <CompassIcon className="h-8 w-8 text-faint" />
                       </span>
                     )}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-lg font-bold">{trip.title}</span>
-                      <span className="block text-stone-600">
+                      <span className="block text-muted">
                         {formatDateBR(trip.start_date)}
                         {trip.end_date !== trip.start_date && ` a ${formatDateBR(trip.end_date)}`}
                       </span>
-                      <span className="block text-sm font-semibold text-stone-700">
+                      <span className="block text-sm font-semibold text-ink-soft">
                         {STATUS_LABELS[trip.status]}
                       </span>
                     </span>

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CompassIcon, Logo } from "@/components/logo";
-import { formatBRL, formatDateRangeBR } from "@/lib/format";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { formatBRL, formatDateBR, formatDateRangeBR } from "@/lib/format";
 import { getPublicTrip, type PublicTrip } from "@/lib/public-trip";
 import { tripUrl } from "@/lib/site";
 import { LEVEL_LABELS, TERRAIN_LABELS, photoUrl } from "@/lib/trips";
@@ -54,10 +55,11 @@ export default async function PublicTripPage({ params }: PageProps<"/v/[slug]">)
 
   return (
     <div className="flex flex-1 flex-col pb-32">
-      <header className="mx-auto w-full max-w-2xl px-4 py-3">
+      <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3">
         <Link href="/" aria-label="Routa, página inicial" className="inline-block">
           <Logo />
         </Link>
+        <ThemeToggle />
       </header>
 
       <main className="mx-auto w-full max-w-2xl space-y-6">
@@ -65,7 +67,7 @@ export default async function PublicTripPage({ params }: PageProps<"/v/[slug]">)
 
         <div className="space-y-6 px-4">
           <div className="space-y-2">
-            <p className="text-lg font-semibold text-brand">{trip.destination}</p>
+            <p className="text-lg font-semibold text-accent">{trip.destination}</p>
             <h1 className="text-3xl leading-tight font-extrabold tracking-tight break-words">
               {trip.title}
             </h1>
@@ -74,46 +76,59 @@ export default async function PublicTripPage({ params }: PageProps<"/v/[slug]">)
 
           <ul className="flex flex-wrap gap-2" aria-label="Perfil da viagem">
             <Chip>Nível: {LEVEL_LABELS[trip.level]}</Chip>
-            <Chip>Terreno: {TERRAIN_LABELS[trip.terrain]}</Chip>
+            <Chip>
+              Terreno: {TERRAIN_LABELS[trip.terrain]} ({trip.terrain_percent}%)
+            </Chip>
           </ul>
 
-          <dl className="divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <dl className="divide-y divide-line rounded-2xl border border-line bg-surface">
             <Info label="Valor">
               {trip.pricing_mode === "fixed" && trip.price_cents !== null ? (
                 <>
-                  <span className="text-xl font-bold">{formatBRL(trip.price_cents)}</span> por
-                  pessoa
-                  <span className="block text-stone-600">
-                    Com garupa: {formatBRL(trip.price_cents * 2)}
+                  <span className="block">
+                    Piloto: <span className="font-bold">{formatBRL(trip.price_cents)}</span>
                   </span>
+                  {trip.pillion_price_cents !== null && (
+                    <span className="block">
+                      Piloto + garupa:{" "}
+                      <span className="font-bold">{formatBRL(trip.pillion_price_cents)}</span>
+                    </span>
+                  )}
                 </>
               ) : (
                 <>
                   <span className="font-bold">A definir</span>
-                  <span className="block text-stone-600">
+                  <span className="block text-muted">
                     Rateio entre o grupo: o organizador passa o valor.
                   </span>
                 </>
               )}
+              {!trip.accepts_pillion && (
+                <span className="block text-muted">Esta viagem não aceita garupa.</span>
+              )}
             </Info>
             <Info label="Vagas">
               <span className="font-bold">{spotsText(trip)}</span>
-              <span className="block text-stone-600">
-                {trip.capacity} motos no total. Piloto e garupa ocupam uma vaga.
+              <span className="block text-muted">
+                {trip.capacity} motos no total.
+                {trip.accepts_pillion && " Piloto e garupa ocupam uma vaga."}
               </span>
             </Info>
-            <Info label="Encontro">
-              {trip.meeting_point}
-              {trip.meeting_point_url && (
-                <a
-                  href={trip.meeting_point_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 flex min-h-12 items-center font-semibold text-brand underline underline-offset-4"
-                >
-                  📍 Abrir no mapa
-                </a>
-              )}
+            <Info label="Saída">
+              <span className="block font-semibold">
+                {formatDateBR(trip.start_date)}
+                {trip.departure_time && ` às ${trip.departure_time}`}
+              </span>
+              {trip.departure_point}
+              <MapLink url={trip.departure_point_url} />
+            </Info>
+            <Info label="Retorno">
+              <span className="block font-semibold">
+                {formatDateBR(trip.end_date)}
+                {trip.return_time && `, previsão ${trip.return_time}`}
+              </span>
+              {trip.return_point ?? "Mesmo local da saída"}
+              <MapLink url={trip.return_point_url} />
             </Info>
             <Info label="Organização">{trip.organizer_name}</Info>
           </dl>
@@ -121,31 +136,31 @@ export default async function PublicTripPage({ params }: PageProps<"/v/[slug]">)
           {trip.description && (
             <section className="space-y-2">
               <h2 className="text-xl font-bold">Roteiro</h2>
-              <p className="text-lg whitespace-pre-line text-stone-800">{trip.description}</p>
+              <p className="text-lg whitespace-pre-line text-ink-soft">{trip.description}</p>
             </section>
           )}
 
-          <details className="group rounded-2xl border border-stone-200 bg-white">
+          <details className="group rounded-2xl border border-line bg-surface">
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-4 text-lg font-bold">
               Termo de responsabilidade
               <span aria-hidden className="transition-transform group-open:rotate-180">
                 ▾
               </span>
             </summary>
-            <p className="px-4 pb-4 whitespace-pre-line text-stone-700">{trip.terms_text}</p>
+            <p className="px-4 pb-4 whitespace-pre-line text-ink-soft">{trip.terms_text}</p>
           </details>
         </div>
       </main>
 
       {/* Botão fixo no rodapé: fácil de achar com o polegar. */}
-      <div className="fixed inset-x-0 bottom-0 border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-line bg-surface/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
         <div className="mx-auto max-w-2xl">
           {isOpen ? (
             <Link href={`/v/${trip.slug}/inscricao`} className="btn-primary">
               {isFull ? "Entrar na lista de espera" : "Quero ir! 🏍️"}
             </Link>
           ) : (
-            <p className="flex min-h-14 items-center justify-center rounded-xl bg-stone-100 text-lg font-semibold text-stone-700">
+            <p className="flex min-h-14 items-center justify-center rounded-xl bg-surface-muted text-lg font-semibold text-ink-soft">
               Inscrições encerradas
             </p>
           )}
@@ -187,7 +202,7 @@ function Photos({ trip }: { trip: PublicTrip }) {
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <li className="rounded-full bg-brand-soft px-3 py-1.5 text-base font-semibold text-brand-dark">
+    <li className="rounded-full bg-brand-soft px-3 py-1.5 text-base font-semibold text-accent-strong">
       {children}
     </li>
   );
@@ -196,8 +211,22 @@ function Chip({ children }: { children: React.ReactNode }) {
 function Info({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[8rem_1fr] gap-3 px-4 py-3 text-lg">
-      <dt className="font-semibold text-stone-600">{label}</dt>
+      <dt className="font-semibold text-muted">{label}</dt>
       <dd>{children}</dd>
     </div>
+  );
+}
+
+function MapLink({ url }: { url: string | null }) {
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-1 flex min-h-12 items-center font-semibold text-accent underline underline-offset-4"
+    >
+      📍 Abrir no mapa
+    </a>
   );
 }

@@ -11,12 +11,19 @@ export type PublicTrip = {
   description: string;
   start_date: string;
   end_date: string;
-  meeting_point: string;
-  meeting_point_url: string | null;
+  departure_point: string;
+  departure_point_url: string | null;
+  departure_time: string | null; // "06:00"
+  return_point: string | null;
+  return_point_url: string | null;
+  return_time: string | null;
   pricing_mode: PricingMode;
   price_cents: number | null;
+  accepts_pillion: boolean;
+  pillion_price_cents: number | null; // total piloto + garupa
   level: TripLevel;
   terrain: TripTerrain;
+  terrain_percent: number;
   capacity: number;
   status: Exclude<TripStatus, "draft">;
   terms_text: string;
