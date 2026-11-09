@@ -37,3 +37,31 @@ export function formatDateBR(isoDate: string): string {
   const [year, month, day] = isoDate.slice(0, 10).split("-");
   return `${day}/${month}/${year}`;
 }
+
+/**
+ * "1.234,56", "R$ 1234,5", "350" → centavos (123456, 123450, 35000).
+ * Devolve null se não for um valor válido.
+ */
+export function parseBRL(input: string): number | null {
+  const clean = input.replace(/R\$|\s/g, "");
+  if (!/^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$/.test(clean)) return null;
+  const [reais, centavos = ""] = clean.replace(/\./g, "").split(",");
+  return Number(reais) * 100 + Number(centavos.padEnd(2, "0"));
+}
+
+/** 123456 → "1.234,56" (para preencher o campo de valor). */
+export function centsToInput(cents: number): string {
+  return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2 }).format(cents / 100);
+}
+
+/** "Serra do Rio do Rastro!" → "serra-do-rio-do-rastro" */
+export function slugify(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60)
+    .replace(/-+$/g, "");
+}
