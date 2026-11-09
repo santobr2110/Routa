@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOrganizer } from "@/lib/auth";
-import { centsToInput } from "@/lib/format";
+import { centsToInput, formatDateRangeBR } from "@/lib/format";
+import { tripUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
-import { STATUS_LABELS, type TripFormValues } from "@/lib/trips";
+import { STATUS_LABELS, shareMessage, type TripFormValues } from "@/lib/trips";
 import type { TripStatus } from "@/types/database";
 import { setTripStatus, updateTrip } from "../actions";
 import { PhotoManager } from "../photo-manager";
+import { ShareActions } from "../share-actions";
 import { TripForm } from "../trip-form";
 
 export const metadata: Metadata = { title: "Editar viagem" };
@@ -66,6 +68,17 @@ export default async function EditarViagemPage({
       </div>
 
       <StatusActions tripId={trip.id} status={trip.status} />
+
+      {trip.status !== "draft" && (
+        <ShareActions
+          url={tripUrl(trip.slug)}
+          message={shareMessage(
+            trip.destination,
+            formatDateRangeBR(trip.start_date, trip.end_date),
+            tripUrl(trip.slug),
+          )}
+        />
+      )}
 
       <section className="space-y-4 rounded-2xl border border-stone-200 bg-white p-4 sm:p-6">
         <div className="space-y-1">

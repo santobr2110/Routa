@@ -72,6 +72,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - O WhatsApp do organizador aparece para o inscrito confirmado (para mandar o comprovante).
 - **Segurança:** o visitante (anon) não lê nenhuma tabela. A página pública e a inscrição usam as funções `get_public_trip` e `register_for_trip` (security definer). Cancelar é `cancel_registration`, que promove a fila. Na tabela de inscritos, o organizador só pode alterar `payment_status`. A capacidade não pode ficar abaixo dos confirmados, e aumentar a capacidade promove a fila.
 - Storage: bucket público `trip-photos`, caminho `{organizer_id}/{trip_id}/arquivo`.
+- **Open Graph (sessão 2):** `ImageResponse` só gera PNG, e PNG com foto fica pesado demais para o WhatsApp. Por isso a capa (JPEG) é a imagem da prévia, e o cartão gerado só entra quando não há foto.
 - **Viagem (sessão 2):** o slug é gerado na criação (`{destino}-{6 hex}`) e **não muda** na edição, para não quebrar links já compartilhados. A viagem nasce como rascunho. Fotos só entram depois de criar a viagem (o caminho precisa do `trip_id`). Trocar a capa = trocar a posição com a foto 0.
 - **Next.js 16:** `cacheComponents` está desligado de propósito (modelo clássico, mais simples). O antigo `middleware.ts` agora se chama `src/proxy.ts`. Antes de usar uma API do Next, consulte `node_modules/next/dist/docs/`.
 - Login por link mágico com o template de e-mail `token_hash` (veja o README), para funcionar quando o link abre em outro navegador do celular.
@@ -100,7 +101,8 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - [ ] Template de e-mail `token_hash` (README, passo 4): o Supabase não deixou editar sem SMTP próprio. Fazer junto com o SMTP no deploy. Até lá, o link precisa ser aberto no mesmo navegador.
 - [x] Criar/editar viagem: `/painel/viagens/nova` e `/painel/viagens/[id]`, todos os campos, termo padrão editável, status (rascunho/publicada/encerrada), lista no `/painel`. Fotos: até 5, reduzidas no navegador e enviadas direto ao Storage; remover e escolher capa. Migration `0002` (policy de SELECT no storage, exigida pelo remove).
   - Testado pelo dono com o Supabase real (migration `0002` aplicada).
-- [ ] Página pública + Open Graph
+- [x] Página pública `/v/[slug]` + Open Graph: fotos, datas, nível/terreno, valor (com garupa = 2×), vagas, encontro com mapa, roteiro, termo recolhido, botão fixo "Quero ir" (leva a `/v/[slug]/inscricao`, que ainda não existe). Prévia: capa como `og:image`; sem foto, cartão gerado em `/v/[slug]/og`. Tela de edição com "Mandar no WhatsApp", "Copiar link" e "Ver página".
+  - [ ] Conferir a prévia no WhatsApp depois do deploy (precisa de URL pública) e o tamanho da capa (WhatsApp ignora imagem muito pesada).
 - [ ] Inscrição + tela Pix
 - [ ] Painel do organizador + CSV
 - [ ] Lista de espera + cancelamento

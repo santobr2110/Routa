@@ -48,7 +48,7 @@ Preencha o `.env.local` com os dados de **Project Settings > API Keys** do Supab
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto (`https://xxxx.supabase.co`) |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública `sb_publishable_...` (ou a antiga "anon key") |
-| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` no seu computador; o domínio real em produção |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` no seu computador; o domínio real em produção (usado no link mágico, nos links compartilhados e na prévia do WhatsApp) |
 
 Nenhuma chave secreta (`service_role` / `sb_secret_...`) é usada no app. A segurança dos dados fica no Row Level Security do banco.
 
@@ -80,7 +80,9 @@ src/app/               páginas (URLs em português: /entrar, /painel, /v/[slug]
 src/lib/supabase/      clientes do Supabase (servidor e navegador)
 src/lib/auth.ts        quem está logado; exige login/perfil
 src/lib/format.ts      datas, R$, telefone, link do WhatsApp e slug
-src/lib/trips.ts       rótulos, termo padrão, campos do formulário e URL das fotos
+src/lib/trips.ts       rótulos, termo padrão, campos do formulário, URL das fotos e mensagem de compartilhamento
+src/lib/public-trip.ts dados públicos da viagem (função get_public_trip)
+src/lib/site.ts        endereço do site e link público da viagem
 src/types/database.ts  tipos do banco
 ```
 

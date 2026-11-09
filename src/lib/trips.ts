@@ -64,3 +64,8 @@ export const DEFAULT_TERMS = `Declaro que:
 export function photoUrl(storagePath: string): string {
   return `${supabaseUrl}/storage/v1/object/public/${PHOTOS_BUCKET}/${storagePath}`;
 }
+
+/** Mensagem padrão para compartilhar no WhatsApp (CLAUDE.md, seção 7). */
+export function shareMessage(destination: string, dates: string, link: string): string {
+  return `🧭 Bora pra ${destination}? ${dates}. Garante sua vaga 👉 ${link}`;
+}

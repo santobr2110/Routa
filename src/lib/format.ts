@@ -65,3 +65,8 @@ export function slugify(text: string): string {
     .slice(0, 60)
     .replace(/-+$/g, "");
 }
+
+/** Mesmo dia → "12/12/2026"; senão → "12/12/2026 a 14/12/2026". */
+export function formatDateRangeBR(start: string, end: string): string {
+  return start === end ? formatDateBR(start) : `${formatDateBR(start)} a ${formatDateBR(end)}`;
+}
