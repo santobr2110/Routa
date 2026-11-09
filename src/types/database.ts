@@ -157,6 +157,8 @@ export type Database = {
           emergency_name: string;
           emergency_phone: string;
           terms_accepted_at: string;
+          /** Cópia do termo como estava no momento do aceite. */
+          terms_text_accepted: string;
           payment_status: PaymentStatus;
           status: RegistrationStatus;
           cancelled_at: string | null;

@@ -60,7 +60,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - `organizers`: id (= auth.uid), name, whatsapp, created_at
 - `trips`: id, organizer_id, slug (único), title, **destination**, description, start_date, end_date, departure_point, departure_point_url, departure_time, return_point, return_point_url, return_time (retorno nulo = mesmo local da saída), price_cents (nullable, valor piloto), pricing_mode ('fixed' | 'split'), accepts_pillion, pillion_price_cents (valor fechado piloto + garupa; só com valor fixo e garupa aceita), level ('beginner' | 'intermediate' | 'experienced'), terrain ('asphalt' | 'mixed' | 'offroad', o predominante), terrain_percent (1–100), capacity, pix_key, terms_text, status ('draft' | 'published' | 'closed'), created_at, updated_at
 - `trip_photos`: id, trip_id, storage_path, position (0–4, máx. 5 fotos)
-- `registrations`: id, trip_id, name, whatsapp, email, bike, has_pillion, pillion_name, emergency_name, emergency_phone, terms_accepted_at, payment_status ('pending' | 'paid'), status ('confirmed' | 'waitlist' | 'cancelled'), cancelled_at, created_at
+- `registrations`: id, trip_id, name, whatsapp, email, bike, has_pillion, pillion_name, emergency_name, emergency_phone, terms_accepted_at, terms_text_accepted (cópia do termo no momento do aceite), payment_status ('pending' | 'paid'), status ('confirmed' | 'waitlist' | 'cancelled'), cancelled_at, created_at
 - Telefones guardados só com dígitos e o 55 na frente (`5511999998888`).
 
 **Decisões tomadas (sessão 1):**
@@ -72,6 +72,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - O WhatsApp do organizador aparece para o inscrito confirmado (para mandar o comprovante).
 - **Segurança:** o visitante (anon) não lê nenhuma tabela. A página pública e a inscrição usam as funções `get_public_trip` e `register_for_trip` (security definer). Cancelar é `cancel_registration`, que promove a fila. Na tabela de inscritos, o organizador só pode alterar `payment_status`. A capacidade não pode ficar abaixo dos confirmados, e aumentar a capacidade promove a fila.
 - Storage: bucket público `trip-photos`, caminho `{organizer_id}/{trip_id}/arquivo`.
+- **Editar viagem publicada (sessão 2):** pode editar em qualquer status. Com inscritos, a edição mostra um aviso para avisar o grupo se mudar valor, datas, saída, garupa ou termo. Cada inscrição guarda a cópia do termo aceito (`0005`).
 - **Inscrição (sessão 2):** a tela final (Pix ou lista de espera) não tem URL própria: vem do retorno da action. Se a pessoa fechar, perde a tela, mas não a inscrição. As inscrições fecham no dia da saída (`registration_open` em `get_public_trip`; `register_for_trip` recusa).
 - **Open Graph (sessão 2):** `ImageResponse` só gera PNG, e PNG com foto fica pesado demais para o WhatsApp. Por isso a capa (JPEG) é a imagem da prévia, e o cartão gerado só entra quando não há foto.
 - **Viagem (sessão 2):** o slug é gerado na criação (`{destino}-{6 hex}`) e **não muda** na edição, para não quebrar links já compartilhados. A viagem nasce como rascunho. Fotos só entram depois de criar a viagem (o caminho precisa do `trip_id`). Trocar a capa = trocar a posição com a foto 0.
@@ -111,6 +112,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - [x] Inscrição + tela Pix: `/v/[slug]/inscricao` sem login, garupa com o valor de cada opção, contato de emergência, aceite do termo; tela final com valor, chave Pix (copiar) e "Mandar comprovante no WhatsApp"; lista de espera sem Pix. Página `/privacidade`. Migration `0004`: inscrições fecham no dia da saída (último dia = véspera, fuso de Brasília).
   - Testado com o Supabase real (`0004` aplicada): inscrição com garupa, Pix, WhatsApp repetido e lista de espera.
   - [ ] Revisar o texto da `/privacidade` (não foi revisado por jurídico) e pôr um e-mail de contato da Routa.
+- [x] Botões de status salvam o formulário junto; aviso de inscritos na edição; cópia do termo aceito em cada inscrição (migration `0005`, aplicar no Supabase).
 - [ ] Painel do organizador + CSV
 - [ ] Lista de espera + cancelamento
 - [ ] Deploy na Vercel

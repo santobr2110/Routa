@@ -31,6 +31,13 @@ export default async function EditarViagemPage({
     .maybeSingle();
   if (!trip) notFound();
 
+  // Inscritos ativos (confirmados + lista de espera), para avisar antes de mudar a viagem.
+  const { count: activeRegistrations } = await supabase
+    .from("registrations")
+    .select("id", { count: "exact", head: true })
+    .eq("trip_id", trip.id)
+    .neq("status", "cancelled");
+
   const photos = [...trip.trip_photos].sort((a, b) => a.position - b.position);
 
   const initial: TripFormValues = {
@@ -76,6 +83,14 @@ export default async function EditarViagemPage({
       </div>
 
       <StatusActions status={trip.status} />
+
+      {!!activeRegistrations && (
+        <p className="rounded-xl bg-warn-soft px-4 py-3 font-medium text-warn" role="note">
+          Esta viagem já tem {activeRegistrations}{" "}
+          {activeRegistrations === 1 ? "inscrito" : "inscritos"}. Se mudar valor, datas, saída,
+          garupa ou termo, avise o grupo pelo WhatsApp.
+        </p>
+      )}
 
       {trip.status !== "draft" && (
         <ShareActions
