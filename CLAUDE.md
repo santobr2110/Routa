@@ -73,6 +73,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - **Segurança:** o visitante (anon) não lê nenhuma tabela. A página pública e a inscrição usam as funções `get_public_trip` e `register_for_trip` (security definer). Cancelar é `cancel_registration`, que promove a fila. Na tabela de inscritos, o organizador só pode alterar `payment_status`. A capacidade não pode ficar abaixo dos confirmados, e aumentar a capacidade promove a fila.
 - Storage: bucket público `trip-photos`, caminho `{organizer_id}/{trip_id}/arquivo`.
 - **Editar viagem publicada (sessão 2):** pode editar em qualquer status. Com inscritos, a edição mostra um aviso para avisar o grupo se mudar valor, datas, saída, garupa ou termo. Cada inscrição guarda a cópia do termo aceito (`0005`).
+- **Dependência `exceljs` (sessão 2):** única forma simples de gerar `.xlsx` com formatação (a versão gratuita do SheetJS não formata). Roda só no servidor. O `npm audit` aponta um aviso moderado no `uuid` dela (v3/v5/v6 com buffer), que não é usado aqui.
 - **Inscrição (sessão 2):** a tela final (Pix ou lista de espera) não tem URL própria: vem do retorno da action. Se a pessoa fechar, perde a tela, mas não a inscrição. As inscrições fecham no dia da saída (`registration_open` em `get_public_trip`; `register_for_trip` recusa).
 - **Open Graph (sessão 2):** `ImageResponse` só gera PNG, e PNG com foto fica pesado demais para o WhatsApp. Por isso a capa (JPEG) é a imagem da prévia, e o cartão gerado só entra quando não há foto.
 - **Viagem (sessão 2):** o slug é gerado na criação (`{destino}-{6 hex}`) e **não muda** na edição, para não quebrar links já compartilhados. A viagem nasce como rascunho. Fotos só entram depois de criar a viagem (o caminho precisa do `trip_id`). Trocar a capa = trocar a posição com a foto 0.
@@ -113,7 +114,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
   - Testado com o Supabase real (`0004` aplicada): inscrição com garupa, Pix, WhatsApp repetido e lista de espera.
   - [ ] Revisar o texto da `/privacidade` (não foi revisado por jurídico) e pôr um e-mail de contato da Routa.
 - [x] Botões de status salvam o formulário junto; aviso de inscritos na edição; cópia do termo aceito em cada inscrição (migration `0005`, aplicar no Supabase).
-- [x] Painel de inscritos (`/painel/viagens/[id]/inscritos`): resumo (vagas, pagos, fila), confirmados com Pago/Pendente, WhatsApp e detalhes (e-mail, emergência), filtro por pagamento, lista de espera numerada, CSV (`;`, BOM, proteção contra fórmula). Contagem de inscritos no `/painel` e na edição.
-  - Testado pelo dono com login (pago, filtro, WhatsApp, CSV).
+- [x] Painel de inscritos (`/painel/viagens/[id]/inscritos`): resumo (vagas, pagos, fila), confirmados com Pago/Pendente, WhatsApp e detalhes (e-mail, emergência), filtro por pagamento, lista de espera numerada, planilha Excel formatada (`.xlsx` via `exceljs`: título, resumo, cabeçalho laranja, Pago/Pendente coloridos, R$, filtros e totais com fórmula). Contagem de inscritos no `/painel` e na edição.
+  - Testado pelo dono com login (pago, filtro, WhatsApp). Planilha Excel testada pelo dono.
 - [ ] Lista de espera + cancelamento
 - [ ] Deploy na Vercel

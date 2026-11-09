@@ -72,11 +72,11 @@ export default async function InscritosPage({
 
       {registrations.length > 0 && (
         <a
-          href={`/painel/viagens/${trip.id}/inscritos/csv`}
+          href={`/painel/viagens/${trip.id}/inscritos/planilha`}
           download
           className="btn-secondary"
         >
-          📄 Baixar planilha (CSV)
+          📊 Baixar planilha (Excel)
         </a>
       )}
 
