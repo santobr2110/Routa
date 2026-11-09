@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getOrganizer, requireUser } from "@/lib/auth";
 import { formatBrPhone } from "@/lib/format";
+import { ChangePasswordForm } from "./change-password-form";
 import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = { title: "Seu perfil" };
@@ -30,6 +31,8 @@ export default async function PerfilPage() {
         email={user.email}
         isNew={!organizer}
       />
+
+      {organizer && <ChangePasswordForm />}
     </div>
   );
 }

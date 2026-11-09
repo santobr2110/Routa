@@ -105,6 +105,10 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - [ ] Templates de e-mail `token_hash` (README, passo 5): o Supabase não deixou editar sem SMTP próprio. Fazer junto com o SMTP no deploy.
 - [x] Login com e-mail e senha: `/entrar`, `/cadastro`, `/esqueci-senha`, `/redefinir-senha`.
   - [ ] Testar (a conta antiga não tem senha: criar com "Esqueci minha senha").
+  - [x] Trocar senha no `/painel/perfil` (senha atual + nova; confere a atual antes de gravar).
+    - [ ] Testar com login (o Claude não tem a senha do dono).
+- [x] Produção: `https://routa-wine.vercel.app` (projeto recriado na Vercel). Supabase: Site URL = esse endereço; Redirect URLs = ele e `http://localhost:3000/**`. Integração Supabase↔Vercel desligada (ela sobrescrevia a Site URL). Vercel precisa de `NEXT_PUBLIC_SITE_URL` = endereço de produção.
+  - [ ] SMTP do Gmail pessoal no Supabase (provisório, até ter o domínio): tira o limite de poucos e-mails por hora e libera editar os templates.
 - [ ] App autenticador opcional (TOTP) no perfil + tela do código no login + migration `0006` (RLS exige aal2 para quem ativou).
 - [x] Criar/editar viagem: `/painel/viagens/nova` e `/painel/viagens/[id]`, todos os campos, termo padrão editável, status (rascunho/publicada/encerrada), lista no `/painel`. Fotos: até 5, reduzidas no navegador e enviadas direto ao Storage; remover e escolher capa. Migration `0002` (policy de SELECT no storage, exigida pelo remove).
   - Testado pelo dono com o Supabase real (migration `0002` aplicada).
