@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Logo } from "@/components/logo";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthShell } from "@/components/auth-shell";
 import { getUser } from "@/lib/auth";
 import { LoginForm } from "./login-form";
 
@@ -14,28 +12,13 @@ export default async function LoginPage({ searchParams }: PageProps<"/entrar">) 
   const { erro } = await searchParams;
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-4 py-10">
-      <div className="flex items-center justify-between">
-        <Link href="/" aria-label="Página inicial da Routa">
-          <Logo />
-        </Link>
-        <ThemeToggle />
-      </div>
-
-      <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">Entrar como organizador</h1>
-        <p className="text-lg text-ink-soft">
-          Primeira vez? É o mesmo caminho: digite seu e-mail e a conta é criada na hora.
-        </p>
-      </div>
-
+    <AuthShell title="Entrar como organizador">
       {erro === "link" && (
         <p className="rounded-xl border-2 border-danger/40 bg-danger-soft p-4 text-base text-danger" role="alert">
-          Esse link expirou ou já foi usado. Peça um novo aqui embaixo.
+          Esse link expirou ou já foi usado. Tenta de novo por aqui.
         </p>
       )}
-
       <LoginForm />
-    </main>
+    </AuthShell>
   );
 }

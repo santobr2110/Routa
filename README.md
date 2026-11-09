@@ -21,20 +21,27 @@ Plataforma web para organizar viagens e passeios de moto em grupo. O contexto do
 3. Em **Authentication > URL Configuration**:
    - **Site URL:** `http://localhost:3000`
    - **Redirect URLs:** adicione `http://localhost:3000/**`
-4. **(Opcional no começo; obrigatório em produção.)** Se o Supabase não deixar editar o template (o campo fica travado sem um SMTP próprio configurado), pule este passo agora. Ele será feito junto com o SMTP no deploy.
-   Abra a página de templates de e-mail: https://supabase.com/dashboard/project/_/auth/templates (o `_` vira o seu projeto sozinho; se pedir, escolha o projeto).
-   Na lista, clique em **Magic link or OTP**, apague o conteúdo do corpo (**Body**) e cole isto:
+4. Em **Authentication > Sign In / Providers > Email**: deixe **Enable email provider** e **Confirm email** ligados. O login é por **e-mail e senha**.
+5. **(Opcional no começo; obrigatório em produção.)** Troque os links dos e-mails de **confirmação de cadastro** e de **recuperação de senha**. Se o Supabase não deixar editar (o campo fica travado sem um SMTP próprio), pule agora e faça junto com o SMTP no deploy.
+   Abra https://supabase.com/dashboard/project/_/auth/templates (o `_` vira o seu projeto sozinho).
+   - Em **Confirm sign up**, troque o corpo por:
 
-   ```html
-   <h2>Seu acesso à Routa</h2>
-   <p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">Entrar na Routa</a></p>
-   <p>Se você não pediu este link, é só ignorar este e-mail.</p>
-   ```
+     ```html
+     <h2>Confirme sua conta na Routa</h2>
+     <p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/painel/perfil">Confirmar minha conta</a></p>
+     <p>Se você não criou uma conta, é só ignorar este e-mail.</p>
+     ```
 
-   Salve e faça o mesmo no template **Confirm sign up**, que é o que chega no primeiro acesso de um e-mail novo.
+   - Em **Reset password**, troque o corpo por:
 
-   **Por que trocar:** com esse link, o login funciona mesmo quando o e-mail é aberto em outro navegador (ex.: o app do Gmail no celular).
-   **Se pular este passo:** o login ainda funciona, desde que você abra o link do e-mail no **mesmo navegador** em que pediu o link.
+     ```html
+     <h2>Nova senha na Routa</h2>
+     <p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/redefinir-senha">Criar uma senha nova</a></p>
+     <p>Se você não pediu, é só ignorar este e-mail: sua senha continua a mesma.</p>
+     ```
+
+   **Por que trocar:** com esses links, funciona mesmo quando o e-mail é aberto em outro navegador (ex.: o app do Gmail no celular).
+   **Se pular este passo:** funciona, desde que o link do e-mail seja aberto no **mesmo navegador** em que a pessoa criou a conta ou pediu a senha nova.
 
 ### 3. Variáveis de ambiente
 
@@ -48,7 +55,7 @@ Preencha o `.env.local` com os dados de **Project Settings > API Keys** do Supab
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto (`https://xxxx.supabase.co`) |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública `sb_publishable_...` (ou a antiga "anon key") |
-| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` no seu computador; o domínio real em produção (usado no link mágico, nos links compartilhados e na prévia do WhatsApp) |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` no seu computador; o domínio real em produção (usado nos e-mails de confirmação e de senha, nos links compartilhados e na prévia do WhatsApp) |
 
 Nenhuma chave secreta (`service_role` / `sb_secret_...`) é usada no app. A segurança dos dados fica no Row Level Security do banco.
 
@@ -61,7 +68,7 @@ npm run dev
 
 Abra http://localhost:3000.
 
-> **Limite de e-mails:** o e-mail padrão do Supabase manda poucos links por hora. Se o link parar de chegar, espere um pouco. Em produção vamos configurar um SMTP próprio.
+> **E-mails:** o e-mail padrão do Supabase manda poucos e-mails por hora e **só para os membros da equipe do projeto**. Para testar, crie contas com o seu e-mail. Em produção é preciso um SMTP próprio.
 
 ## Comandos
 

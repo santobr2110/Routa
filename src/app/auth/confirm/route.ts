@@ -9,7 +9,7 @@ function safeNext(next: string | null): string {
 }
 
 /**
- * Destino do link mágico. Aceita os dois formatos do Supabase:
+ * Destino dos links dos e-mails (confirmar cadastro, nova senha). Aceita os dois formatos do Supabase:
  * - ?token_hash=...&type=email  (template de e-mail recomendado no README; funciona
  *   mesmo se o link for aberto em outro navegador, ex.: o app do Gmail no celular)
  * - ?code=...                   (template padrão do Supabase, fluxo PKCE)

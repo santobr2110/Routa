@@ -1,39 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
+import { PasswordInput } from "@/components/password-input";
 import { SubmitButton } from "@/components/submit-button";
-import { sendMagicLink, type LoginState } from "./actions";
-
-const initialState: LoginState = { status: "idle" };
+import { signIn, type LoginState } from "./actions";
 
 export function LoginForm() {
-  const [state, formAction] = useActionState(sendMagicLink, initialState);
-
-  if (state.status === "sent") {
-    return (
-      <div className="space-y-4 rounded-2xl border-2 border-accent/30 bg-brand-soft p-5" role="status">
-        <p className="text-xl font-bold">Confira seu e-mail 📬</p>
-        <p className="text-lg">
-          Mandamos um link de acesso para <strong className="break-all">{state.email}</strong>.
-          Toque nele para entrar. Se não chegar em 1 minuto, olhe o spam.
-        </p>
-        <form action={formAction}>
-          <input type="hidden" name="email" value={state.email} />
-          <SubmitButton className="btn-secondary" pendingText="Reenviando…">
-            Reenviar link
-          </SubmitButton>
-        </form>
-      </div>
-    );
-  }
-
-  const error = state.status === "error" ? state.message : null;
+  const [state, formAction] = useActionState<LoginState, FormData>(signIn, {});
+  const error = state.error;
 
   return (
     <form action={formAction} className="space-y-5" noValidate>
       <div>
         <label htmlFor="email" className="field-label">
-          Seu e-mail
+          E-mail
         </label>
         <input
           id="email"
@@ -44,23 +25,44 @@ export function LoginForm() {
           autoCapitalize="none"
           required
           placeholder="voce@exemplo.com"
-          defaultValue={state.status === "error" ? state.email : undefined}
+          defaultValue={state.email}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? "email-error" : "email-hint"}
           className="field-input"
         />
-        {error ? (
-          <p id="email-error" className="field-error" role="alert">
-            {error}
-          </p>
-        ) : (
-          <p id="email-hint" className="field-hint">
-            Sem senha: a gente manda um link de acesso.
-          </p>
-        )}
       </div>
 
-      <SubmitButton pendingText="Enviando o link…">Receber link de acesso</SubmitButton>
+      <div>
+        <div className="flex items-baseline justify-between gap-2">
+          <label htmlFor="password" className="field-label">
+            Senha
+          </label>
+          <Link href="/esqueci-senha" className="font-semibold text-accent underline">
+            Esqueci minha senha
+          </Link>
+        </div>
+        <PasswordInput
+          id="password"
+          name="password"
+          autoComplete="current-password"
+          invalid={!!error}
+          describedBy={error ? "login-error" : undefined}
+        />
+      </div>
+
+      {error && (
+        <p id="login-error" className="field-error text-base" role="alert">
+          {error}
+        </p>
+      )}
+
+      <SubmitButton pendingText="Entrando…">Entrar</SubmitButton>
+
+      <p className="text-center text-lg">
+        Primeira vez aqui?{" "}
+        <Link href="/cadastro" className="font-semibold text-accent underline">
+          Criar conta
+        </Link>
+      </p>
     </form>
   );
 }
