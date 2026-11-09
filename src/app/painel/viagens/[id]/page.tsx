@@ -61,6 +61,7 @@ export default async function EditarViagemPage({
     terrain: trip.terrain,
     terrain_percent: String(trip.terrain_percent),
     capacity: String(trip.capacity),
+    requires_plate: trip.requires_plate ? "on" : "",
     pix_key: trip.pix_key,
     terms_text: trip.terms_text,
   };

@@ -25,8 +25,10 @@ export default function PrivacidadePage() {
 
         <Section title="Quem se inscreve numa viagem">
           <p>
-            Pedimos só o necessário para a viagem acontecer: nome, WhatsApp, e-mail, a moto, o
-            nome da garupa (se houver) e um contato de emergência (nome e telefone). Também
+            Pedimos só o necessário para a viagem acontecer: nome, WhatsApp, e-mail, a moto
+            (marca e modelo; ano e cor se você quiser informar), o nome da garupa (se houver) e
+            um contato de emergência (nome e telefone). A placa da moto só é pedida quando o
+            organizador precisa dela (por exemplo, para check-in, pousada ou seguro). Também
             guardamos a data em que você aceitou o termo de responsabilidade.
           </p>
           <p>
@@ -36,6 +38,12 @@ export default function PrivacidadePage() {
           <p>
             <strong>Para quê:</strong> organizar a viagem (lista de participantes, pagamento e
             lista de espera) e avisar alguém numa emergência.
+          </p>
+          <p>
+            <strong>Proteção contra robôs:</strong> o formulário usa o Cloudflare Turnstile para
+            confirmar que é uma pessoa se inscrevendo. Para limitar inscrições em massa, guardamos
+            por até 1 dia um código embaralhado (hash) gerado a partir do endereço de internet
+            (IP) de quem envia, nunca o IP em si.
           </p>
         </Section>
 
@@ -63,7 +71,8 @@ export default function PrivacidadePage() {
           <p>
             Os dados ficam guardados com segurança no Supabase, nosso provedor de banco de dados,
             enquanto a viagem existir. Quando o organizador apaga a viagem, as inscrições dela
-            são apagadas junto.
+            são apagadas junto. A placa da moto é apagada automaticamente 90 dias depois do fim
+            da viagem.
           </p>
         </Section>
 

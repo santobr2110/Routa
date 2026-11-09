@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/0001_init.sql.
+// Escrito à mão a partir de supabase/migrations/ (até a 0006).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -65,6 +65,7 @@ export type Database = {
           price_cents: number | null;
           accepts_pillion: boolean;
           pillion_price_cents: number | null;
+          requires_plate: boolean;
           level: TripLevel;
           terrain: TripTerrain;
           terrain_percent: number;
@@ -94,6 +95,7 @@ export type Database = {
           price_cents?: number | null;
           accepts_pillion?: boolean;
           pillion_price_cents?: number | null;
+          requires_plate?: boolean;
           level: TripLevel;
           terrain: TripTerrain;
           terrain_percent?: number;
@@ -151,7 +153,14 @@ export type Database = {
           name: string;
           whatsapp: string;
           email: string;
+          /** Marca + modelo em texto (inscrições antigas só têm este campo). */
           bike: string;
+          bike_brand: string | null;
+          bike_model: string | null;
+          bike_year: number | null;
+          bike_color: string | null;
+          /** Só quando a viagem pede; apagada 90 dias depois da viagem (purge_old_plates). */
+          bike_plate: string | null;
           has_pillion: boolean;
           pillion_name: string | null;
           emergency_name: string;
@@ -193,12 +202,22 @@ export type Database = {
           p_name: string;
           p_whatsapp: string;
           p_email: string;
-          p_bike: string;
+          p_bike_brand: string;
+          p_bike_model: string;
+          p_bike_year: number | null;
+          p_bike_color: string | null;
+          p_bike_plate: string | null;
           p_has_pillion: boolean;
           p_pillion_name: string | null;
           p_emergency_name: string;
           p_emergency_phone: string;
           p_terms_accepted: boolean;
+          /** Hash do IP (registration-guard.ts), para o limite de frequência. */
+          p_ip_hash: string | null;
+          /** Segundos desde 1970; a prova vale 5 minutos. */
+          p_issued_at: number;
+          /** HMAC-SHA256 de "slug|whatsapp|ip_hash|issued_at" com o segredo. */
+          p_proof: string;
         };
         Returns: Json;
       };

@@ -29,7 +29,7 @@ Este arquivo é lido pelo Claude Code em toda sessão. Mantenha-o atualizado qua
 1. **Login do organizador** com e-mail e senha (cadastro, confirmação por e-mail, "esqueci minha senha"), via Supabase Auth. Verificação em duas etapas com app autenticador, **opcional**.
 2. **Criar e editar viagem:** título, descrição/roteiro, data de início e fim, local e horário de saída e de retorno (texto + horário + link do Maps; retorno opcional), fotos (até 5), número de vagas, valor piloto e valor piloto + garupa (ou "a definir/rateio"), nível exigido (iniciante / intermediário / estradeiro experiente), terreno predominante (asfalto / misto / off-road) + %, chave Pix do organizador, termo de responsabilidade (texto padrão editável).
 3. **Página pública da viagem** (`/v/[slug]`): bonita, mobile-first, rápida, com **Open Graph** caprichado (título, data, imagem) para a prévia no WhatsApp. Mostra as vagas restantes e o botão "Quero ir".
-4. **Inscrição sem login:** nome, WhatsApp, e-mail, moto (marca/modelo), se leva garupa (e o nome da garupa), contato de emergência (nome + telefone) e aceite obrigatório do termo. Depois de enviar: tela com a chave Pix, o valor e a instrução para mandar o comprovante ao organizador.
+4. **Inscrição sem login:** nome, WhatsApp, e-mail, ficha da moto (marca, modelo, ano e cor opcionais; placa só se o organizador pedir), se leva garupa (e o nome da garupa), contato de emergência (nome + telefone) e aceite obrigatório do termo. Depois de enviar: tela com a chave Pix, o valor e a instrução para mandar o comprovante ao organizador.
 5. **Painel do organizador:** lista de inscritos, status de pagamento (pendente/pago, **marcado manualmente**), vagas restantes, lista de espera automática quando lotar, botão de WhatsApp para falar com cada inscrito, exportação em CSV.
 6. **Cancelamento:** o organizador pode remover um inscrito; a primeira pessoa da lista de espera é promovida.
 
@@ -60,7 +60,9 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - `organizers`: id (= auth.uid), name, whatsapp, created_at
 - `trips`: id, organizer_id, slug (único), title, **destination**, description, start_date, end_date, departure_point, departure_point_url, departure_time, return_point, return_point_url, return_time (retorno nulo = mesmo local da saída), price_cents (nullable, valor piloto), pricing_mode ('fixed' | 'split'), accepts_pillion, pillion_price_cents (valor fechado piloto + garupa; só com valor fixo e garupa aceita), level ('beginner' | 'intermediate' | 'experienced'), terrain ('asphalt' | 'mixed' | 'offroad', o predominante), terrain_percent (1–100), capacity, pix_key, terms_text, status ('draft' | 'published' | 'closed'), created_at, updated_at
 - `trip_photos`: id, trip_id, storage_path, position (0–4, máx. 5 fotos)
-- `registrations`: id, trip_id, name, whatsapp, email, bike, has_pillion, pillion_name, emergency_name, emergency_phone, terms_accepted_at, terms_text_accepted (cópia do termo no momento do aceite), payment_status ('pending' | 'paid'), status ('confirmed' | 'waitlist' | 'cancelled'), cancelled_at, created_at
+- `registrations`: id, trip_id, name, whatsapp, email, bike (texto "marca modelo"), bike_brand, bike_model, bike_year, bike_color, bike_plate (só se a viagem pede; formato `ABC1D23`/`ABC1234` sem hífen), has_pillion, pillion_name, emergency_name, emergency_phone, terms_accepted_at, terms_text_accepted (cópia do termo no momento do aceite), payment_status ('pending' | 'paid'), status ('confirmed' | 'waitlist' | 'cancelled'), cancelled_at, created_at
+- `trips.requires_plate` (boolean): a inscrição pede a placa.
+- Esquema `private` (não exposto pela API): `app_secrets` (segredo da assinatura) e `registration_attempts` (hash do IP + data, para o limite).
 - Telefones guardados só com dígitos e o 55 na frente (`5511999998888`).
 
 **Decisões tomadas (sessão 1):**
@@ -80,6 +82,8 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - **Modo escuro (sessão 2):** padrão escuro, paleta **azul-noite** (fundo `#0b1120`, cartões `#111a2e`), botão sol/lua no topo, escolha salva no `localStorage` (`routa-theme`). Use as **cores com nome** do `globals.css` (`bg-surface`, `text-muted`, `border-line`, `text-accent`, `text-danger`…), nunca `stone-*`, `white` ou `red-*` direto. `bg-brand` (botões) é igual nos dois modos; `text-accent` é o laranja para texto e links.
 - **Next.js 16:** `cacheComponents` está desligado de propósito (modelo clássico, mais simples). O antigo `middleware.ts` agora se chama `src/proxy.ts`. Antes de usar uma API do Next, consulte `node_modules/next/dist/docs/`.
 - **Login (sessão 2):** e-mail e senha, sem link mágico. App autenticador (TOTP) opcional no perfil. Os e-mails de confirmação e de nova senha usam o template `token_hash` (README, passo 5), para funcionar quando o link abre em outro navegador do celular. Use um endereço só (`NEXT_PUBLIC_SITE_URL` = Site URL do Supabase): o login guarda dados por endereço.
+- **Proteção da inscrição (sessão 3):** `register_for_trip` exige `p_proof` = HMAC-SHA256 de `slug|whatsapp|ip_hash|issued_at` com o segredo `REGISTRATION_SIGNING_SECRET` (o mesmo valor fica em `private.app_secrets`); vale 5 minutos. Só a server action gera a prova, depois de conferir o Cloudflare Turnstile (`src/lib/registration-guard.ts`). Limite de 5 inscrições por hash de IP a cada 10 min. A versão antiga da função (10 argumentos) foi apagada na `0006`. Sem `TURNSTILE_SECRET_KEY`, o Turnstile é pulado (só para desenvolvimento). O token do Turnstile vale uma vez: o formulário recria o widget a cada envio (`attempt`).
+- **Ficha da moto (sessão 3):** marcas e modelos em `src/lib/bikes.ts` são só sugestões (datalist); a pessoa pode digitar qualquer coisa. A marca é gravada com a grafia da lista (`canonicalBrand`). Ano opcional (1950 até o ano que vem). A placa só é aceita quando a viagem pede; o banco descarta se não pediu. LGPD: `purge_old_plates()` apaga placas 90 dias após o fim da viagem, agendada com pg_cron (README 3.1).
 
 ## 7. Identidade visual
 
@@ -126,3 +130,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - [x] Lista de espera + cancelamento: botão "Remover da viagem" (com confirmação) em cada inscrito; a função `cancel_registration` promove a fila e a tela avisa quem ganhou a vaga, com WhatsApp e mensagem pronta (valor + chave Pix). A inscrição fica como cancelada (não é apagada).
   - Testado pelo dono com login: remoção, promoção da fila e aviso pelo WhatsApp.
 - [ ] Deploy na Vercel
+- [x] Proteção contra inscrições falsas (sessão 3, migration `0006`): Turnstile + prova assinada (HMAC) + limite por IP. Testado num Postgres local: prova válida, falsa, de outro WhatsApp, vencida e limite por IP.
+  - [ ] Aplicar a `0006`, gravar o segredo no banco e na Vercel, criar o widget Turnstile (README 3.1) e testar com o Supabase real.
+- [x] Ficha da moto (sessão 3, migration `0006`): marca e modelo com sugestões, ano e cor opcionais, placa quando o organizador liga "Pedir a placa" na viagem; aparece no painel (placa em "Ver mais") e na planilha (colunas Moto e Placa). Página de privacidade atualizada.
+  - [ ] Ligar o pg_cron e agendar `purge_old_plates` (README 3.1).

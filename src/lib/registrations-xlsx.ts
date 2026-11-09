@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import { formatBRL, formatBrPhone, formatDateRangeBR, formatDateTimeBR } from "@/lib/format";
+import { describeBike, formatPlate } from "@/lib/bikes";
 import { amountDue } from "@/lib/registrations";
 import type { Database } from "@/types/database";
 
@@ -20,6 +21,11 @@ type Registration = Pick<
   | "whatsapp"
   | "email"
   | "bike"
+  | "bike_brand"
+  | "bike_model"
+  | "bike_year"
+  | "bike_color"
+  | "bike_plate"
   | "has_pillion"
   | "pillion_name"
   | "emergency_name"
@@ -47,7 +53,8 @@ const COLUMNS = [
   { key: "name", header: "Nome", width: 28 },
   { key: "whatsapp", header: "WhatsApp", width: 17 },
   { key: "email", header: "E-mail", width: 30 },
-  { key: "bike", header: "Moto", width: 22 },
+  { key: "bike", header: "Moto", width: 30 },
+  { key: "plate", header: "Placa", width: 11 },
   { key: "pillion", header: "Garupa", width: 22 },
   { key: "emergency_name", header: "Contato de emergência", width: 24 },
   { key: "emergency_phone", header: "Telefone de emergência", width: 20 },
@@ -152,7 +159,8 @@ export async function buildRegistrationsWorkbook(
       name: r.name,
       whatsapp: formatBrPhone(r.whatsapp),
       email: r.email,
-      bike: r.bike,
+      bike: describeBike(r),
+      plate: r.bike_plate ? formatPlate(r.bike_plate) : "",
       pillion: r.has_pillion ? r.pillion_name ?? "" : "",
       emergency_name: r.emergency_name,
       emergency_phone: formatBrPhone(r.emergency_phone),

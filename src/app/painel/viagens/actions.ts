@@ -45,6 +45,7 @@ const ERRORS: Record<TripField, string> = {
   terrain: "Escolhe o terreno predominante.",
   terrain_percent: "Coloca quanto % da viagem é nesse terreno (de 1 a 100).",
   capacity: "Quantas motos cabem? (de 1 a 500)",
+  requires_plate: "Valor inválido.",
   pix_key: "Coloca a chave Pix (CPF, e-mail, telefone ou aleatória).",
   terms_text: "O termo precisa ter pelo menos algumas linhas.",
 };
@@ -101,6 +102,7 @@ function parseTrip(formData: FormData) {
     values.terrain_percent,
   );
   const capacity = check("capacity", z.coerce.number().int().min(1).max(500), values.capacity);
+  const requires_plate = values.requires_plate === "on";
   const pix_key = check("pix_key", z.string().trim().min(3).max(140), values.pix_key);
   const terms_text = check("terms_text", z.string().trim().min(20).max(10000), values.terms_text);
 
@@ -126,6 +128,7 @@ function parseTrip(formData: FormData) {
     terrain: terrain!,
     terrain_percent: terrain_percent!,
     capacity: capacity!,
+    requires_plate,
     pix_key: pix_key!,
     terms_text: terms_text!,
   } satisfies Omit<TripInsert, "organizer_id" | "slug">;

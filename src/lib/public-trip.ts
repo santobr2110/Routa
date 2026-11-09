@@ -21,6 +21,8 @@ export type PublicTrip = {
   price_cents: number | null;
   accepts_pillion: boolean;
   pillion_price_cents: number | null; // total piloto + garupa
+  /** A inscrição pede a placa da moto (migration 0006). */
+  requires_plate: boolean;
   level: TripLevel;
   terrain: TripTerrain;
   terrain_percent: number;

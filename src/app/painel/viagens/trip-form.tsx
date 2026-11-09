@@ -213,6 +213,21 @@ export function TripForm({
           />
           {message("capacity")}
         </div>
+        <div>
+          <label className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-2 border-line-strong bg-surface px-4 text-lg has-checked:border-brand has-checked:bg-brand-soft">
+            <input
+              type="checkbox"
+              name="requires_plate"
+              defaultChecked={values.requires_plate === "on"}
+              className="h-5 w-5 accent-brand"
+            />
+            Pedir a placa da moto na inscrição
+          </label>
+          <p className="mt-1 text-sm text-muted">
+            Ligue só se precisar (check-in, pousada, seguro). A placa só aparece para você e é
+            apagada 90 dias depois da viagem.
+          </p>
+        </div>
       </Section>
 
       <Section title="Pagamento">

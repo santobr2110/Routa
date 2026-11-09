@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
+import { Turnstile } from "@/components/turnstile";
+import { BIKE_BRANDS, maxBikeYear, modelsFor } from "@/lib/bikes";
 import { formatBRL } from "@/lib/format";
 import type { PricingMode } from "@/types/database";
 import {
@@ -20,6 +22,7 @@ export type FormTrip = {
   priceCents: number | null;
   pillionPriceCents: number | null;
   acceptsPillion: boolean;
+  requiresPlate: boolean;
   isFull: boolean;
   termsText: string;
 };
@@ -28,7 +31,11 @@ const EMPTY: RegisterValues = {
   name: "",
   whatsapp: "",
   email: "",
-  bike: "",
+  bike_brand: "",
+  bike_model: "",
+  bike_year: "",
+  bike_color: "",
+  bike_plate: "",
   has_pillion: "no",
   pillion_name: "",
   emergency_name: "",
@@ -36,7 +43,14 @@ const EMPTY: RegisterValues = {
   terms: "",
 };
 
-export function RegistrationForm({ trip }: { trip: FormTrip }) {
+export function RegistrationForm({
+  trip,
+  turnstileSiteKey,
+}: {
+  trip: FormTrip;
+  /** Vazio = anti-robô desligado (computador de desenvolvimento). */
+  turnstileSiteKey: string;
+}) {
   const [state, formAction] = useActionState<RegisterState, FormData>(
     registerForTrip.bind(null, trip.slug),
     {},
@@ -44,6 +58,8 @@ export function RegistrationForm({ trip }: { trip: FormTrip }) {
   const values = state.values ?? EMPTY;
   const errors = state.errors ?? {};
   const [hasPillion, setHasPillion] = useState(values.has_pillion === "yes");
+  const [brand, setBrand] = useState(values.bike_brand);
+  const models = modelsFor(brand);
 
   if (state.result) {
     return <RegistrationDone trip={trip} result={state.result} name={values.name} />;
@@ -113,13 +129,93 @@ export function RegistrationForm({ trip }: { trip: FormTrip }) {
           />
           {error("email")}
         </div>
-        <div>
-          <label htmlFor="bike" className="field-label">
-            Sua moto (marca e modelo)
-          </label>
-          <input {...field("bike")} placeholder="Ex.: Honda XRE 300" required maxLength={80} />
-          {error("bike")}
+      </section>
+
+      <section className="space-y-5 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+        <h2 className="text-xl font-bold">Sua moto</h2>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="bike_brand" className="field-label">
+              Marca
+            </label>
+            <input
+              {...field("bike_brand")}
+              list="bike-brands"
+              placeholder="Ex.: Honda"
+              autoComplete="off"
+              required
+              maxLength={40}
+              onChange={(e) => setBrand(e.target.value)}
+            />
+            <datalist id="bike-brands">
+              {BIKE_BRANDS.map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
+            {error("bike_brand")}
+          </div>
+          <div>
+            <label htmlFor="bike_model" className="field-label">
+              Modelo
+            </label>
+            <input
+              {...field("bike_model")}
+              list="bike-models"
+              placeholder="Ex.: XRE 300"
+              autoComplete="off"
+              required
+              maxLength={60}
+            />
+            <datalist id="bike-models">
+              {models.map((m) => (
+                <option key={m} value={m} />
+              ))}
+            </datalist>
+            {error("bike_model")}
+          </div>
+          <div>
+            <label htmlFor="bike_year" className="field-label">
+              Ano <span className="font-normal text-muted">(opcional)</span>
+            </label>
+            <input
+              {...field("bike_year")}
+              type="number"
+              inputMode="numeric"
+              min={1950}
+              max={maxBikeYear()}
+              placeholder="Ex.: 2022"
+            />
+            {error("bike_year")}
+          </div>
+          <div>
+            <label htmlFor="bike_color" className="field-label">
+              Cor <span className="font-normal text-muted">(opcional)</span>
+            </label>
+            <input {...field("bike_color")} placeholder="Ex.: vermelha" maxLength={30} />
+            {error("bike_color")}
+          </div>
         </div>
+        {trip.requiresPlate && (
+          <div>
+            <label htmlFor="bike_plate" className="field-label">
+              Placa
+            </label>
+            <input
+              {...field("bike_plate")}
+              placeholder="ABC1D23"
+              autoComplete="off"
+              autoCapitalize="characters"
+              required
+              maxLength={8}
+              className="field-input uppercase"
+            />
+            <p className="mt-1 text-sm text-muted">
+              O organizador pediu a placa (check-in, pousada ou seguro). Só ele vê, e ela é
+              apagada 90 dias depois da viagem.
+            </p>
+            {error("bike_plate")}
+          </div>
+        )}
       </section>
 
       {trip.acceptsPillion ? (
@@ -236,11 +332,15 @@ export function RegistrationForm({ trip }: { trip: FormTrip }) {
             Tem campo para corrigir aí em cima.
           </p>
         )}
+        {turnstileSiteKey && (
+          <Turnstile siteKey={turnstileSiteKey} resetKey={state.attempt ?? 0} />
+        )}
         <SubmitButton pendingText="Enviando…">
           {trip.isFull ? "Entrar na lista de espera" : "Garantir minha vaga"}
         </SubmitButton>
         <p className="text-sm text-muted">
-          Seu WhatsApp e o contato de emergência só aparecem para o organizador desta viagem.{" "}
+          Seu WhatsApp, o contato de emergência e os dados da moto só aparecem para o
+          organizador desta viagem.{" "}
           <Link href="/privacidade" className="font-semibold text-accent underline">
             Política de privacidade
           </Link>

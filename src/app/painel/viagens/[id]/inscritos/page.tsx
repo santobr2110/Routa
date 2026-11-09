@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOrganizer } from "@/lib/auth";
+import { describeBike, formatPlate } from "@/lib/bikes";
 import { formatBRL, formatBrPhone, formatDateTimeBR, whatsappLink } from "@/lib/format";
 import { REGISTRATION_COLUMNS, amountDue } from "@/lib/registrations";
 import { createClient } from "@/lib/supabase/server";
@@ -159,7 +160,7 @@ export default async function InscritosPage({
                   <div>
                     <p className="text-lg font-bold break-words">{r.name}</p>
                     <p className="text-muted">
-                      🏍️ {r.bike}
+                      🏍️ {describeBike(r)}
                       {r.has_pillion && ` · garupa: ${r.pillion_name}`}
                     </p>
                     <p className="font-semibold">
@@ -201,7 +202,7 @@ export default async function InscritosPage({
                     {i + 1}º · {r.name}
                   </p>
                   <p className="text-muted">
-                    🏍️ {r.bike}
+                    🏍️ {describeBike(r)}
                     {r.has_pillion && ` · garupa: ${r.pillion_name}`}
                   </p>
                 </div>
@@ -243,12 +244,13 @@ function WhatsAppButton({ phone, text }: { phone: string; text: string }) {
 
 type Row = {
   email: string;
+  bike_plate: string | null;
   emergency_name: string;
   emergency_phone: string;
   created_at: string;
 };
 
-/** E-mail, contato de emergência e data, recolhidos para não poluir o cartão. */
+/** E-mail, placa, contato de emergência e data, recolhidos para não poluir o cartão. */
 function Details({ r }: { r: Row }) {
   return (
     <details className="group">
@@ -261,6 +263,12 @@ function Details({ r }: { r: Row }) {
           <dt className="inline font-semibold">E-mail: </dt>
           <dd className="inline break-all">{r.email}</dd>
         </div>
+        {r.bike_plate && (
+          <div>
+            <dt className="inline font-semibold">Placa: </dt>
+            <dd className="inline">{formatPlate(r.bike_plate)}</dd>
+          </div>
+        )}
         <div>
           <dt className="inline font-semibold">Emergência: </dt>
           <dd className="inline">

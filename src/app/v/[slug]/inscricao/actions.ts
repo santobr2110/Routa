@@ -1,7 +1,10 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
+import { canonicalBrand, maxBikeYear, normalizePlate } from "@/lib/bikes";
 import { normalizeBrPhone } from "@/lib/format";
+import { clientIp, hashIp, signRegistration, verifyTurnstile } from "@/lib/registration-guard";
 import { createClient } from "@/lib/supabase/server";
 import type { PricingMode } from "@/types/database";
 
@@ -9,7 +12,11 @@ export type RegisterField =
   | "name"
   | "whatsapp"
   | "email"
-  | "bike"
+  | "bike_brand"
+  | "bike_model"
+  | "bike_year"
+  | "bike_color"
+  | "bike_plate"
   | "has_pillion"
   | "pillion_name"
   | "emergency_name"
@@ -34,13 +41,19 @@ export type RegisterState = {
   errors?: Partial<Record<RegisterField | "form", string>>;
   values?: RegisterValues;
   result?: RegisterResult;
+  /** Muda a cada envio, para o anti-robô gerar um token novo (cada token vale uma vez). */
+  attempt?: number;
 };
 
 const FIELDS: RegisterField[] = [
   "name",
   "whatsapp",
   "email",
-  "bike",
+  "bike_brand",
+  "bike_model",
+  "bike_year",
+  "bike_color",
+  "bike_plate",
   "has_pillion",
   "pillion_name",
   "emergency_name",
@@ -50,6 +63,8 @@ const FIELDS: RegisterField[] = [
 
 const personName = z.string().trim().min(2).max(80);
 
+const RETRY = "Não deu para enviar agora. Recarrega a página e tenta de novo.";
+
 /** Erros que a função do banco pode levantar, em português. */
 const DB_ERRORS: Record<string, Partial<Record<RegisterField | "form", string>>> = {
   already_registered: {
@@ -58,16 +73,23 @@ const DB_ERRORS: Record<string, Partial<Record<RegisterField | "form", string>>>
   trip_not_open: { form: "As inscrições desta viagem fecharam." },
   pillion_not_accepted: { has_pillion: "Esta viagem não aceita garupa." },
   terms_not_accepted: { terms: "Pra se inscrever, precisa aceitar o termo." },
+  plate_required: { bike_plate: "Coloca a placa da moto, ex.: ABC1D23 ou ABC-1234." },
+  rate_limited: {
+    form: "Muitas inscrições seguidas deste aparelho. Espera uns minutos e tenta de novo.",
+  },
+  invalid_proof: { form: RETRY },
 };
 
 export async function registerForTrip(
   slug: string,
-  _prev: RegisterState,
+  prev: RegisterState,
   formData: FormData,
 ): Promise<RegisterState> {
+  const attempt = (prev.attempt ?? 0) + 1;
   const values = Object.fromEntries(
     FIELDS.map((f) => [f, String(formData.get(f) ?? "")]),
   ) as RegisterValues;
+  const fail = (errors: RegisterState["errors"]): RegisterState => ({ errors, values, attempt });
 
   const errors: RegisterState["errors"] = {};
   const name = personName.safeParse(values.name);
@@ -76,8 +98,28 @@ export async function registerForTrip(
   if (!whatsapp) errors.whatsapp = "Coloca o WhatsApp com DDD, ex.: (11) 99999-8888.";
   const email = z.email().max(200).safeParse(values.email.trim());
   if (!email.success) errors.email = "Coloca um e-mail válido, ex.: voce@exemplo.com.";
-  const bike = z.string().trim().min(2).max(80).safeParse(values.bike);
-  if (!bike.success) errors.bike = "Qual moto você vai levar? Ex.: Honda XRE 300.";
+
+  // Ficha da moto.
+  const brand = z.string().trim().min(2).max(40).safeParse(values.bike_brand);
+  if (!brand.success) errors.bike_brand = "Qual a marca da moto? Ex.: Honda.";
+  const model = z.string().trim().min(1).max(60).safeParse(values.bike_model);
+  if (!model.success) errors.bike_model = "Qual o modelo? Ex.: XRE 300.";
+  let year: number | null = null;
+  if (values.bike_year.trim() !== "") {
+    const parsed = z.coerce.number().int().min(1950).max(maxBikeYear()).safeParse(values.bike_year);
+    if (parsed.success) year = parsed.data;
+    else errors.bike_year = `Coloca o ano com 4 números, de 1950 a ${maxBikeYear()}.`;
+  }
+  const color = values.bike_color.trim();
+  if (color && (color.length < 2 || color.length > 30)) {
+    errors.bike_color = "A cor pode ter de 2 a 30 letras.";
+  }
+  // A placa só vale quando a viagem pede (o banco confere de novo e descarta se não pediu).
+  let plate: string | null = null;
+  if (values.bike_plate.trim() !== "") {
+    plate = normalizePlate(values.bike_plate);
+    if (!plate) errors.bike_plate = "Placa inválida. Ex.: ABC1D23 ou ABC-1234.";
+  }
 
   const hasPillion = values.has_pillion === "yes";
   const pillionName = personName.safeParse(values.pillion_name);
@@ -94,7 +136,24 @@ export async function registerForTrip(
 
   if (values.terms !== "on") errors.terms = "Pra se inscrever, precisa aceitar o termo.";
 
-  if (Object.keys(errors).length > 0) return { errors, values };
+  if (Object.keys(errors).length > 0) return fail(errors);
+
+  // Anti-robô: confere o Turnstile e assina a inscrição para o banco aceitar.
+  const ip = clientIp(await headers());
+  const human = await verifyTurnstile(String(formData.get("cf-turnstile-response") ?? ""), ip);
+  if (!human) {
+    return fail({ form: "Não conseguimos confirmar que você não é um robô. Tenta de novo." });
+  }
+
+  let ipHash: string | null;
+  let proof: { issuedAt: number; proof: string };
+  try {
+    ipHash = hashIp(ip);
+    proof = signRegistration(slug, whatsapp!, ipHash);
+  } catch (error) {
+    console.error("register_for_trip: proteção não configurada", error);
+    return fail({ form: RETRY });
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("register_for_trip", {
@@ -102,20 +161,30 @@ export async function registerForTrip(
     p_name: name.data!,
     p_whatsapp: whatsapp!,
     p_email: email.data!,
-    p_bike: bike.data!,
+    p_bike_brand: canonicalBrand(brand.data!),
+    p_bike_model: model.data!,
+    p_bike_year: year,
+    p_bike_color: color || null,
+    p_bike_plate: plate,
     p_has_pillion: hasPillion,
     p_pillion_name: hasPillion ? pillionName.data! : null,
     p_emergency_name: emergencyName.data!,
     p_emergency_phone: emergencyPhone!,
     p_terms_accepted: true,
+    p_ip_hash: ipHash,
+    p_issued_at: proof.issuedAt,
+    p_proof: proof.proof,
   });
 
   if (error) {
     const known = Object.keys(DB_ERRORS).find((code) => error.message.includes(code));
-    if (known) return { errors: DB_ERRORS[known], values };
+    if (known) {
+      if (known === "invalid_proof") console.error("register_for_trip: prova recusada", slug);
+      return fail(DB_ERRORS[known]);
+    }
     console.error("register_for_trip", slug, error);
-    return { errors: { form: "Não deu para enviar agora. Tenta de novo em instantes." }, values };
+    return fail({ form: "Não deu para enviar agora. Tenta de novo em instantes." });
   }
 
-  return { result: data as RegisterResult, values };
+  return { result: data as RegisterResult, values, attempt };
 }

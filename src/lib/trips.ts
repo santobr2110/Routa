@@ -22,6 +22,7 @@ export const TRIP_FIELDS = [
   "terrain",
   "terrain_percent",
   "capacity",
+  "requires_plate",
   "pix_key",
   "terms_text",
 ] as const;

@@ -5,6 +5,7 @@ import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { formatDateRangeBR } from "@/lib/format";
 import { getPublicTrip } from "@/lib/public-trip";
+import { turnstileSiteKey } from "@/lib/registration-guard";
 import { RegistrationForm } from "./registration-form";
 
 export async function generateMetadata({
@@ -57,9 +58,11 @@ export default async function InscricaoPage({ params }: PageProps<"/v/[slug]/ins
               priceCents: trip.price_cents,
               pillionPriceCents: trip.pillion_price_cents,
               acceptsPillion: trip.accepts_pillion,
+              requiresPlate: trip.requires_plate ?? false,
               isFull: trip.spots_left === 0,
               termsText: trip.terms_text,
             }}
+            turnstileSiteKey={turnstileSiteKey}
           />
         ) : (
           <p

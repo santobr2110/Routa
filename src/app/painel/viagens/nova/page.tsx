@@ -27,6 +27,7 @@ const EMPTY: TripFormValues = {
   terrain: "asphalt",
   terrain_percent: "100",
   capacity: "10",
+  requires_plate: "",
   pix_key: "",
   terms_text: DEFAULT_TERMS,
 };
