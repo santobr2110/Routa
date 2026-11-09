@@ -92,10 +92,10 @@ body {
 /* Botões e campos grandes: uso com luva e sob sol forte. */
 @layer components {
   .btn-primary {
-    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-lg font-semibold text-white transition-colors hover:bg-brand-dark focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl py-2 text-center leading-snug bg-brand px-6 text-lg font-semibold text-white transition-colors hover:bg-brand-dark focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-secondary {
-    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border-2 border-line-strong bg-surface px-6 text-lg font-semibold text-ink transition-colors hover:border-line-hover focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60;
+    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl py-2 text-center leading-snug border-2 border-line-strong bg-surface px-6 text-lg font-semibold text-ink transition-colors hover:border-line-hover focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60;
   }
   .field-label {
     @apply block text-base font-semibold text-ink;

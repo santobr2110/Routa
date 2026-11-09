@@ -83,6 +83,7 @@ src/lib/format.ts      datas, R$, telefone, link do WhatsApp e slug
 src/lib/trips.ts       rótulos, termo padrão, campos do formulário, URL das fotos e mensagem de compartilhamento
 src/lib/public-trip.ts dados públicos da viagem (função get_public_trip)
 src/lib/site.ts        endereço do site e link público da viagem
+src/app/v/[slug]/      página pública da viagem, inscrição e prévia (og)
 src/types/database.ts  tipos do banco
 ```
 

@@ -26,6 +26,8 @@ export type PublicTrip = {
   terrain_percent: number;
   capacity: number;
   status: Exclude<TripStatus, "draft">;
+  /** Publicada e antes do dia da saída (o banco calcula no fuso de Brasília). */
+  registration_open: boolean;
   terms_text: string;
   organizer_name: string;
   spots_left: number;

@@ -72,6 +72,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - O WhatsApp do organizador aparece para o inscrito confirmado (para mandar o comprovante).
 - **Segurança:** o visitante (anon) não lê nenhuma tabela. A página pública e a inscrição usam as funções `get_public_trip` e `register_for_trip` (security definer). Cancelar é `cancel_registration`, que promove a fila. Na tabela de inscritos, o organizador só pode alterar `payment_status`. A capacidade não pode ficar abaixo dos confirmados, e aumentar a capacidade promove a fila.
 - Storage: bucket público `trip-photos`, caminho `{organizer_id}/{trip_id}/arquivo`.
+- **Inscrição (sessão 2):** a tela final (Pix ou lista de espera) não tem URL própria: vem do retorno da action. Se a pessoa fechar, perde a tela, mas não a inscrição. As inscrições fecham no dia da saída (`registration_open` em `get_public_trip`; `register_for_trip` recusa).
 - **Open Graph (sessão 2):** `ImageResponse` só gera PNG, e PNG com foto fica pesado demais para o WhatsApp. Por isso a capa (JPEG) é a imagem da prévia, e o cartão gerado só entra quando não há foto.
 - **Viagem (sessão 2):** o slug é gerado na criação (`{destino}-{6 hex}`) e **não muda** na edição, para não quebrar links já compartilhados. A viagem nasce como rascunho. Fotos só entram depois de criar a viagem (o caminho precisa do `trip_id`). Trocar a capa = trocar a posição com a foto 0.
 - **Modo escuro (sessão 2):** padrão escuro, paleta **azul-noite** (fundo `#0b1120`, cartões `#111a2e`), botão sol/lua no topo, escolha salva no `localStorage` (`routa-theme`). Use as **cores com nome** do `globals.css` (`bg-surface`, `text-muted`, `border-line`, `text-accent`, `text-danger`…), nunca `stone-*`, `white` ou `red-*` direto. `bg-brand` (botões) é igual nos dois modos; `text-accent` é o laranja para texto e links.
@@ -107,7 +108,9 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - [x] Ajustes da viagem (migration `0003`): valor piloto + garupa fechado (vazio = não aceita garupa), local/horário de saída e de retorno, terreno predominante + %.
   - [ ] Testar com o Supabase real depois de aplicar a `0003`.
 - [x] Modo escuro (padrão, azul-noite) com botão sol/lua em todas as telas.
-- [ ] Inscrição + tela Pix (`register_for_trip` já devolve `amount_cents` com o valor certo para quem leva garupa)
+- [x] Inscrição + tela Pix: `/v/[slug]/inscricao` sem login, garupa com o valor de cada opção, contato de emergência, aceite do termo; tela final com valor, chave Pix (copiar) e "Mandar comprovante no WhatsApp"; lista de espera sem Pix. Página `/privacidade`. Migration `0004`: inscrições fecham no dia da saída (último dia = véspera, fuso de Brasília).
+  - Testado com o Supabase real (`0004` aplicada): inscrição com garupa, Pix, WhatsApp repetido e lista de espera.
+  - [ ] Revisar o texto da `/privacidade` (não foi revisado por jurídico) e pôr um e-mail de contato da Routa.
 - [ ] Painel do organizador + CSV
 - [ ] Lista de espera + cancelamento
 - [ ] Deploy na Vercel

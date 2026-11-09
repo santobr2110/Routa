@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: PageProps<"/v/[slug]">): Prom
 }
 
 function spotsText(trip: PublicTrip): string {
-  if (trip.status === "closed") return "Inscrições encerradas";
+  if (!trip.registration_open) return "Inscrições encerradas";
   if (trip.spots_left === 0) return "Lotou, mas tem lista de espera";
   return trip.spots_left === 1 ? "Última vaga!" : `${trip.spots_left} vagas`;
 }
@@ -50,7 +50,7 @@ export default async function PublicTripPage({ params }: PageProps<"/v/[slug]">)
   if (!trip) notFound();
 
   const dates = formatDateRangeBR(trip.start_date, trip.end_date);
-  const isOpen = trip.status === "published";
+  const isOpen = trip.registration_open;
   const isFull = trip.spots_left === 0;
 
   return (
