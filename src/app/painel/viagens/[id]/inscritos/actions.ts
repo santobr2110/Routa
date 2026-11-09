@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireOrganizer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { PaymentStatus } from "@/types/database";
@@ -27,4 +28,45 @@ export async function setPaymentStatus(
 
   revalidatePath(`/painel/viagens/${tripId}/inscritos`);
   return {};
+}
+
+/**
+ * Remove um inscrito (confirmado ou da fila). A função do banco marca como cancelado e
+ * promove os primeiros da lista de espera. Volta para a lista avisando quem subiu.
+ */
+export async function cancelRegistration(tripId: string, registrationId: string) {
+  await requireOrganizer();
+  const supabase = await createClient();
+  const page = `/painel/viagens/${tripId}/inscritos`;
+
+  // Quem está na fila antes, para descobrir quem foi promovido depois.
+  const { data: before } = await supabase
+    .from("registrations")
+    .select("id")
+    .eq("trip_id", tripId)
+    .eq("status", "waitlist");
+  const waitlistIds = (before ?? []).map((r) => r.id).filter((id) => id !== registrationId);
+
+  const { error } = await supabase.rpc("cancel_registration", {
+    p_registration_id: registrationId,
+  });
+  if (error) {
+    console.error("cancel_registration", registrationId, error);
+    redirect(`${page}?erro=remover`);
+  }
+
+  let promoted: string[] = [];
+  if (waitlistIds.length > 0) {
+    const { data: after } = await supabase
+      .from("registrations")
+      .select("id")
+      .in("id", waitlistIds)
+      .eq("status", "confirmed");
+    promoted = (after ?? []).map((r) => r.id);
+  }
+
+  revalidatePath("/painel");
+  revalidatePath(`/painel/viagens/${tripId}`);
+  revalidatePath(page);
+  redirect(promoted.length ? `${page}?promovido=${promoted.join(",")}` : `${page}?removido=1`);
 }

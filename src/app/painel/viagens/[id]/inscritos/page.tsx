@@ -5,7 +5,9 @@ import { requireOrganizer } from "@/lib/auth";
 import { formatBRL, formatBrPhone, formatDateTimeBR, whatsappLink } from "@/lib/format";
 import { REGISTRATION_COLUMNS, amountDue } from "@/lib/registrations";
 import { createClient } from "@/lib/supabase/server";
+import { cancelRegistration } from "./actions";
 import { PaymentToggle } from "./payment-toggle";
+import { RemoveButton } from "./remove-button";
 
 export const metadata: Metadata = { title: "Inscritos" };
 
@@ -18,14 +20,14 @@ export default async function InscritosPage({
 }: PageProps<"/painel/viagens/[id]/inscritos">) {
   const { organizer } = await requireOrganizer();
   const { id } = await params;
-  const { filtro } = await searchParams;
+  const { filtro, promovido, removido, erro } = await searchParams;
   const filter: Filter = filtro === "pendentes" || filtro === "pagos" ? filtro : "todos";
 
   const supabase = await createClient();
   // O RLS só devolve a viagem e as inscrições do próprio organizador.
   const { data: trip } = await supabase
     .from("trips")
-    .select("id, title, capacity, pricing_mode, price_cents, pillion_price_cents")
+    .select("id, title, capacity, pricing_mode, price_cents, pillion_price_cents, pix_key")
     .eq("id", id)
     .maybeSingle();
   if (!trip) notFound();
@@ -47,6 +49,18 @@ export default async function InscritosPage({
       (filter === "pagos" ? r.payment_status === "paid" : r.payment_status === "pending"),
   );
 
+  // Quem acabou de sair da fila (veio na URL depois de remover alguém).
+  const promotedIds = typeof promovido === "string" ? promovido.split(",") : [];
+  const promoted = confirmed.filter((r) => promotedIds.includes(r.id));
+  const promotedMessage = (r: (typeof confirmed)[number]) => {
+    const due = amountDue(trip, r.has_pillion);
+    return [
+      `Oi, ${r.name.split(" ")[0]}! Abriu uma vaga no ${trip.title} e ela é sua! 🎉`,
+      due !== null ? `O valor é ${formatBRL(due)}.` : "Já te passo o valor do rateio.",
+      `Minha chave Pix: ${trip.pix_key}. Me manda o comprovante por aqui.`,
+    ].join(" ");
+  };
+
   const greeting = (name: string) =>
     `Oi, ${name.split(" ")[0]}! Aqui é ${organizer.name.split(" ")[0]}, da viagem ${trip.title}.`;
 
@@ -63,6 +77,37 @@ export default async function InscritosPage({
         <h1 className="text-3xl font-extrabold tracking-tight">Inscritos</h1>
         <p className="text-lg text-muted break-words">{trip.title}</p>
       </div>
+
+      {erro === "remover" && (
+        <p className="rounded-xl bg-danger-soft px-4 py-3 font-medium text-danger" role="alert">
+          Não deu para remover. Tenta de novo.
+        </p>
+      )}
+      {removido && promoted.length === 0 && (
+        <p className="rounded-xl bg-success-soft px-4 py-3 font-medium text-success" role="status">
+          Inscrito removido.
+        </p>
+      )}
+      {promoted.map((r) => (
+        <div
+          key={r.id}
+          className="space-y-3 rounded-2xl border-2 border-success/40 bg-success-soft p-4"
+          role="status"
+        >
+          <p className="text-lg font-semibold text-success">
+            Inscrito removido. {r.name} saiu da lista de espera e ganhou a vaga! Avise pelo
+            WhatsApp.
+          </p>
+          <a
+            href={whatsappLink(r.whatsapp, promotedMessage(r))}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary"
+          >
+            Avisar {r.name.split(" ")[0]} no WhatsApp
+          </a>
+        </div>
+      ))}
 
       <dl className="grid grid-cols-3 gap-2">
         <Stat label="Vagas" value={`${confirmed.length} de ${trip.capacity}`} />
@@ -129,6 +174,9 @@ export default async function InscritosPage({
                     <WhatsAppButton phone={r.whatsapp} text={greeting(r.name)} />
                   </div>
                   <Details r={r} />
+                  <form action={cancelRegistration.bind(null, trip.id, r.id)}>
+                    <RemoveButton name={r.name} />
+                  </form>
                 </li>
               );
             })}
@@ -159,6 +207,9 @@ export default async function InscritosPage({
                 </div>
                 <WhatsAppButton phone={r.whatsapp} text={greeting(r.name)} />
                 <Details r={r} />
+                <form action={cancelRegistration.bind(null, trip.id, r.id)}>
+                  <RemoveButton name={r.name} />
+                </form>
               </li>
             ))}
           </ol>

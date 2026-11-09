@@ -116,5 +116,6 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - [x] Botões de status salvam o formulário junto; aviso de inscritos na edição; cópia do termo aceito em cada inscrição (migration `0005`, aplicar no Supabase).
 - [x] Painel de inscritos (`/painel/viagens/[id]/inscritos`): resumo (vagas, pagos, fila), confirmados com Pago/Pendente, WhatsApp e detalhes (e-mail, emergência), filtro por pagamento, lista de espera numerada, planilha Excel formatada (`.xlsx` via `exceljs`: título, resumo, cabeçalho laranja, Pago/Pendente coloridos, R$, filtros e totais com fórmula). Contagem de inscritos no `/painel` e na edição.
   - Testado pelo dono com login (pago, filtro, WhatsApp). Planilha Excel testada pelo dono.
-- [ ] Lista de espera + cancelamento
+- [x] Lista de espera + cancelamento: botão "Remover da viagem" (com confirmação) em cada inscrito; a função `cancel_registration` promove a fila e a tela avisa quem ganhou a vaga, com WhatsApp e mensagem pronta (valor + chave Pix). A inscrição fica como cancelada (não é apagada).
+  - Testado pelo dono com login: remoção, promoção da fila e aviso pelo WhatsApp.
 - [ ] Deploy na Vercel
