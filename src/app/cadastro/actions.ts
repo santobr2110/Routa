@@ -41,7 +41,7 @@ export async function signUp(_prev: SignUpState, formData: FormData): Promise<Si
       errors: {
         form:
           error.status === 429
-            ? "Muitas tentativas seguidas. Espera um minutinho e tenta de novo."
+            ? "Já mandamos e-mails demais por agora. Tenta criar a conta de novo daqui a 1 hora."
             : "Não deu para criar a conta agora. Tenta de novo daqui a pouco.",
       },
       email,

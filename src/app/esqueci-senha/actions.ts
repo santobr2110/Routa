@@ -21,7 +21,13 @@ export async function requestPasswordReset(
   });
 
   if (error?.status === 429) {
-    return { error: "Muitos pedidos seguidos. Espera um minutinho e tenta de novo.", email };
+    // Pode ser o intervalo de 60 s por e-mail ou o limite de e-mails por hora do projeto
+    // (o e-mail grátis do Supabase manda poucos por hora; resolve com SMTP próprio).
+    return {
+      error:
+        "Já mandamos e-mails demais por agora. Confere se o último não chegou (olha o spam) ou tenta de novo daqui a 1 hora.",
+      email,
+    };
   }
   // Mesmo se o e-mail não tiver conta, a resposta é igual (não revela quem é cadastrado).
   return { sent: true, email };
