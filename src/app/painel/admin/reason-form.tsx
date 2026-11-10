@@ -24,7 +24,7 @@ export function ReasonForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="min-h-12 w-full rounded-xl border-2 border-line-strong px-4 font-semibold text-danger hover:bg-danger-soft"
+        className="min-h-10 w-full rounded-lg border border-line px-4 text-sm font-medium text-danger hover:bg-danger-soft sm:w-auto"
       >
         {label}
       </button>
@@ -32,7 +32,10 @@ export function ReasonForm({
   }
 
   return (
-    <form action={action} className="space-y-2 rounded-xl border border-line p-3">
+    <form
+      action={action}
+      className="space-y-2 rounded-xl border border-line p-3"
+    >
       <label className="field-label" htmlFor="reason">
         Motivo (fica registrado e o organizador vê)
       </label>
@@ -50,7 +53,7 @@ export function ReasonForm({
       <button
         type="button"
         onClick={() => setOpen(false)}
-        className="min-h-12 w-full font-semibold text-ink-soft"
+        className="min-h-9 w-full text-sm font-medium text-ink-soft sm:w-auto"
       >
         Cancelar
       </button>

@@ -14,7 +14,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/entrar">) 
   return (
     <AuthShell title="Entrar como organizador">
       {erro === "link" && (
-        <p className="rounded-xl border-2 border-danger/40 bg-danger-soft p-4 text-base text-danger" role="alert">
+        <p className="rounded-xl border border-danger/40 bg-danger-soft p-4 text-base text-danger" role="alert">
           Esse link expirou ou já foi usado. Tenta de novo por aqui.
         </p>
       )}

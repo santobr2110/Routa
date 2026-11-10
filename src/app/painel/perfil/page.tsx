@@ -12,12 +12,12 @@ export default async function PerfilPage() {
   const organizer = await getOrganizer(user.id);
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">
+        <h1 className="page-title">
           {organizer ? "Seu perfil" : "Bem-vindo à Routa!"}
         </h1>
-        <p className="text-lg text-ink-soft">
+        <p className="text-base text-ink-soft">
           {organizer
             ? "Esses dados aparecem para quem se inscreve nas suas viagens."
             : "Antes de criar sua primeira viagem, conta pra gente quem é você. Quem se inscrever vai ver seu nome e falar com você pelo WhatsApp."}

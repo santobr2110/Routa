@@ -29,9 +29,9 @@ export async function CadasturSection({ organizerId }: { organizerId: string }) 
   const canRequest = !pending && (!approved || state !== "valid");
 
   return (
-    <section className="space-y-4 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+    <section className="space-y-4 rounded-xl border border-line bg-surface p-4 sm:p-5">
       <div className="space-y-1">
-        <h2 className="text-xl font-bold">Selo Cadastur</h2>
+        <h2 className="section-title">Selo Cadastur</h2>
         <p className="text-ink-soft">
           É agência de turismo com Cadastur? Envie o certificado e ganhe o selo{" "}
           <strong>&ldquo;Agente de turismo verificado&rdquo;</strong> nas suas viagens.
@@ -74,7 +74,7 @@ export async function CadasturSection({ organizerId }: { organizerId: string }) 
       {canRequest && <CadasturForm organizerId={organizerId} />}
 
       {isAdmin && (
-        <Link href="/painel/admin/selos" className="inline-flex min-h-12 items-center font-semibold text-accent">
+        <Link href="/painel/admin/selos" className="inline-flex min-h-11 sm:min-h-9 items-center font-semibold text-accent">
           Admin: revisar pedidos de selo →
         </Link>
       )}

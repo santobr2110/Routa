@@ -20,9 +20,9 @@ export function SignUpForm() {
 
   if (state.sent) {
     return (
-      <div className="space-y-3 rounded-2xl border-2 border-accent/30 bg-brand-soft p-5" role="status">
-        <p className="text-xl font-bold">Confira seu e-mail 📬</p>
-        <p className="text-lg">
+      <div className="space-y-3 rounded-xl border border-accent/30 bg-brand-soft p-5" role="status">
+        <p className="section-title">Confira seu e-mail 📬</p>
+        <p className="text-base">
           Mandamos um link para <strong className="break-all">{state.email}</strong>. Toque nele
           para confirmar a conta. Se não chegar em 1 minuto, olhe o spam.
         </p>
@@ -99,7 +99,7 @@ export function SignUpForm() {
 
       <SubmitButton pendingText="Criando…">Criar conta</SubmitButton>
 
-      <p className="text-center text-lg">
+      <p className="text-center text-base">
         Já tem conta?{" "}
         <Link href="/entrar" className="font-semibold text-accent underline">
           Entrar

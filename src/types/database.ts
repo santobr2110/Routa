@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0008).
+// Escrito à mão a partir de supabase/migrations/ (até a 0009).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -284,6 +284,7 @@ export type Database = {
         Returns: undefined;
       };
       admin_dashboard: { Args: Record<string, never>; Returns: Json };
+      admin_analytics: { Args: { p_days?: number; p_bucket?: string }; Returns: Json };
       admin_list_users: {
         Args: { p_search?: string | null; p_limit?: number; p_offset?: number };
         Returns: Json;

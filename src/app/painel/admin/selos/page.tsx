@@ -3,15 +3,27 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SubmitButton } from "@/components/submit-button";
 import { requireUser } from "@/lib/auth";
-import { CADASTUR_BUCKET, CADASTUR_PUBLIC_SEARCH_URL, daysUntil } from "@/lib/cadastur";
+import {
+  CADASTUR_BUCKET,
+  CADASTUR_PUBLIC_SEARCH_URL,
+  daysUntil,
+} from "@/lib/cadastur";
 import { formatCnpj, lookupCnpj, type CnpjLookup } from "@/lib/cnpj";
-import { formatBrPhone, formatDateBR, formatDateTimeBR, whatsappLink } from "@/lib/format";
+import {
+  formatBrPhone,
+  formatDateBR,
+  formatDateTimeBR,
+  whatsappLink,
+} from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { CadasturStatus } from "@/types/database";
 import { reviewCadastur } from "./actions";
 import { RejectForm } from "./reject-form";
 
-export const metadata: Metadata = { title: "Admin · Selos Cadastur", robots: { index: false } };
+export const metadata: Metadata = {
+  title: "Admin · Selos Cadastur",
+  robots: { index: false },
+};
 
 type AdminRequest = {
   id: string;
@@ -36,14 +48,22 @@ const TABS: Record<CadasturStatus, string> = {
 };
 
 const RESULTS: Record<string, { text: string; ok: boolean }> = {
-  aprovado: { text: "Selo aprovado. Já aparece nas viagens do organizador.", ok: true },
-  recusado: { text: "Pedido recusado. O organizador vê o motivo no perfil.", ok: true },
+  aprovado: {
+    text: "Selo aprovado. Já aparece nas viagens do organizador.",
+    ok: true,
+  },
+  recusado: {
+    text: "Pedido recusado. O organizador vê o motivo no perfil.",
+    ok: true,
+  },
   "sem-motivo": { text: "Para recusar, escreva o motivo.", ok: false },
   "ja-revisado": { text: "Esse pedido já tinha sido revisado.", ok: false },
   erro: { text: "Não deu para salvar. Tente de novo.", ok: false },
 };
 
-export default async function AdminSelosPage({ searchParams }: PageProps<"/painel/admin/selos">) {
+export default async function AdminSelosPage({
+  searchParams,
+}: PageProps<"/painel/admin/selos">) {
   await requireUser();
   const supabase = await createClient();
   // Quem é admin é o banco que diz (tabela private.admins). Para os outros, a página não existe.
@@ -52,9 +72,13 @@ export default async function AdminSelosPage({ searchParams }: PageProps<"/paine
 
   const { status: rawStatus, resultado } = await searchParams;
   const status: CadasturStatus =
-    rawStatus === "approved" || rawStatus === "rejected" ? rawStatus : "pending";
+    rawStatus === "approved" || rawStatus === "rejected"
+      ? rawStatus
+      : "pending";
 
-  const { data, error } = await supabase.rpc("admin_list_cadastur", { p_status: status });
+  const { data, error } = await supabase.rpc("admin_list_cadastur", {
+    p_status: status,
+  });
   if (error) throw error;
   const requests = (data ?? []) as AdminRequest[];
 
@@ -64,24 +88,30 @@ export default async function AdminSelosPage({ searchParams }: PageProps<"/paine
       if (r.status !== "pending") return { lookup: null, fileUrl: null };
       const [lookup, file] = await Promise.all([
         lookupCnpj(r.cnpj),
-        supabase.storage.from(CADASTUR_BUCKET).createSignedUrl(r.certificate_path, 600),
+        supabase.storage
+          .from(CADASTUR_BUCKET)
+          .createSignedUrl(r.certificate_path, 600),
       ]);
       return { lookup, fileUrl: file.data?.signedUrl ?? null };
     }),
   );
 
-  const message = typeof resultado === "string" ? RESULTS[resultado] : undefined;
+  const message =
+    typeof resultado === "string" ? RESULTS[resultado] : undefined;
 
   return (
     <div className="space-y-6">
-      <Link href="/painel/perfil" className="inline-flex min-h-12 items-center font-semibold text-accent">
+      <Link
+        href="/painel/perfil"
+        className="inline-flex min-h-9 items-center text-sm font-medium text-accent"
+      >
         ← Perfil
       </Link>
       <div className="space-y-1">
-        <h1 className="text-3xl font-extrabold tracking-tight">Selos Cadastur</h1>
+        <h1 className="page-title">Selos Cadastur</h1>
         <p className="text-ink-soft">
-          Confira cada pedido na consulta pública do Cadastur antes de aprovar. O selo diz que a
-          Routa conferiu, não que o governo certificou a Routa.
+          Confira cada pedido na consulta pública do Cadastur antes de aprovar.
+          O selo diz que a Routa conferiu, não que o governo certificou a Routa.
         </p>
       </div>
 
@@ -100,7 +130,7 @@ export default async function AdminSelosPage({ searchParams }: PageProps<"/paine
             key={key}
             href={`/painel/admin/selos?status=${key}`}
             aria-current={key === status ? "page" : undefined}
-            className="inline-flex min-h-12 items-center rounded-full border-2 border-line-strong px-4 font-semibold aria-[current=page]:border-brand aria-[current=page]:bg-brand-soft"
+            className="inline-flex min-h-9 items-center rounded-md border border-line px-3 text-sm text-ink-soft hover:text-ink aria-[current=page]:border-ink aria-[current=page]:font-medium aria-[current=page]:text-ink"
           >
             {label}
           </Link>
@@ -108,22 +138,30 @@ export default async function AdminSelosPage({ searchParams }: PageProps<"/paine
       </nav>
 
       {requests.length === 0 ? (
-        <p className="rounded-2xl border-2 border-dashed border-line-strong p-6 text-center text-muted">
+        <p className="rounded-xl border border-dashed border-line-strong p-6 text-center text-muted">
           Nenhum pedido aqui.
         </p>
       ) : (
         <ul className="space-y-4">
           {requests.map((r, i) => (
-            <li key={r.id} className="space-y-4 rounded-2xl border border-line bg-surface p-4">
+            <li
+              key={r.id}
+              className="space-y-4 rounded-xl border border-line bg-surface p-4"
+            >
               <div className="space-y-1">
-                <p className="text-lg font-bold break-words">{r.organizer_name}</p>
+                <p className="text-base font-semibold break-words">
+                  {r.organizer_name}
+                </p>
                 <p className="text-muted break-all">
                   {r.organizer_email ?? "sem e-mail"} ·{" "}
                   <a
-                    href={whatsappLink(r.organizer_whatsapp, `Oi, ${r.organizer_name.split(" ")[0]}! Aqui é da Routa, sobre o seu selo Cadastur.`)}
+                    href={whatsappLink(
+                      r.organizer_whatsapp,
+                      `Oi, ${r.organizer_name.split(" ")[0]}! Aqui é da Routa, sobre o seu selo Cadastur.`,
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold text-accent underline"
+                    className="font-medium text-accent hover:underline"
                   >
                     {formatBrPhone(r.organizer_whatsapp)}
                   </a>
@@ -134,10 +172,15 @@ export default async function AdminSelosPage({ searchParams }: PageProps<"/paine
                 <Row label="CNPJ">{formatCnpj(r.cnpj)}</Row>
                 <Row label="Certificado">{r.certificate_number}</Row>
                 <Row label="Válido até">
-                  {formatDateBR(r.valid_until)} ({daysUntil(r.valid_until)} dias)
+                  {formatDateBR(r.valid_until)} ({daysUntil(r.valid_until)}{" "}
+                  dias)
                 </Row>
                 <Row label="Pedido em">{formatDateTimeBR(r.created_at)}</Row>
-                {r.reviewed_at && <Row label="Revisado em">{formatDateTimeBR(r.reviewed_at)}</Row>}
+                {r.reviewed_at && (
+                  <Row label="Revisado em">
+                    {formatDateTimeBR(r.reviewed_at)}
+                  </Row>
+                )}
                 {r.reject_reason && <Row label="Motivo">{r.reject_reason}</Row>}
               </dl>
 
@@ -150,27 +193,33 @@ export default async function AdminSelosPage({ searchParams }: PageProps<"/paine
                         href={details[i]!.fileUrl!}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-12 items-center justify-center rounded-xl border-2 border-line-strong px-4 font-semibold"
+                        className="inline-flex min-h-9 items-center justify-center rounded-lg border border-line px-3 text-sm font-medium hover:bg-surface-muted"
                       >
                         Abrir certificado
                       </a>
                     ) : (
-                      <p className="text-danger">Arquivo do certificado não encontrado.</p>
+                      <p className="text-danger">
+                        Arquivo do certificado não encontrado.
+                      </p>
                     )}
                     <a
                       href={CADASTUR_PUBLIC_SEARCH_URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-12 items-center justify-center rounded-xl border-2 border-line-strong px-4 font-semibold"
+                      className="inline-flex min-h-9 items-center justify-center rounded-lg border border-line px-3 text-sm font-medium hover:bg-surface-muted"
                     >
                       Consulta pública do Cadastur
                     </a>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <form action={reviewCadastur.bind(null, r.id, true)}>
-                      <SubmitButton pendingText="Aprovando…">Aprovar selo</SubmitButton>
+                      <SubmitButton pendingText="Aprovando…">
+                        Aprovar selo
+                      </SubmitButton>
                     </form>
-                    <RejectForm action={reviewCadastur.bind(null, r.id, false)} />
+                    <RejectForm
+                      action={reviewCadastur.bind(null, r.id, false)}
+                    />
                   </div>
                 </>
               )}
@@ -182,7 +231,13 @@ export default async function AdminSelosPage({ searchParams }: PageProps<"/paine
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
       <dt className="inline font-semibold">{label}: </dt>
@@ -197,7 +252,8 @@ function CnpjCheck({ lookup }: { lookup: CnpjLookup | null }) {
   if (lookup.status === "unavailable") {
     return (
       <p className="rounded-xl bg-warn-soft px-4 py-3 text-warn">
-        ⚠️ Nenhum serviço de consulta da Receita respondeu agora. Recarregue a página em alguns minutos ou confira o CNPJ manualmente.
+        ⚠️ Nenhum serviço de consulta da Receita respondeu agora. Recarregue a
+        página em alguns minutos ou confira o CNPJ manualmente.
       </p>
     );
   }
@@ -211,7 +267,8 @@ function CnpjCheck({ lookup }: { lookup: CnpjLookup | null }) {
   return (
     <div className="space-y-1 rounded-xl bg-surface-muted px-4 py-3">
       <p className="font-semibold">
-        Receita Federal <span className="font-normal text-muted">(via {lookup.source})</span>
+        Receita Federal{" "}
+        <span className="font-normal text-muted">(via {lookup.source})</span>
       </p>
       <p>
         {lookup.active ? "✅" : "❌"} Situação: {lookup.situation}
@@ -221,7 +278,8 @@ function CnpjCheck({ lookup }: { lookup: CnpjLookup | null }) {
         {lookup.tradeName && ` (${lookup.tradeName})`}
       </p>
       <p>
-        {lookup.tourismActivities.length > 0 ? "✅" : "⚠️"} Atividade de turismo:{" "}
+        {lookup.tourismActivities.length > 0 ? "✅" : "⚠️"} Atividade de
+        turismo:{" "}
         {lookup.tourismActivities.length > 0
           ? lookup.tourismActivities.join(", ")
           : `não encontrada (atividade principal: ${lookup.mainActivity || "?"})`}

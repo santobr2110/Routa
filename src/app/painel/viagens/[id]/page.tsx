@@ -68,7 +68,7 @@ export default async function EditarViagemPage({
 
   return (
     <div className="space-y-6">
-      <Link href="/painel" className="inline-flex min-h-12 items-center font-semibold text-accent">
+      <Link href="/painel" className="inline-flex min-h-11 sm:min-h-9 items-center font-semibold text-accent">
         ← Voltar
       </Link>
 
@@ -79,7 +79,7 @@ export default async function EditarViagemPage({
       )}
 
       <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight break-words">{trip.title}</h1>
+        <h1 className="page-title break-words">{trip.title}</h1>
         <StatusBadge status={trip.status} />
       </div>
 
@@ -108,9 +108,9 @@ export default async function EditarViagemPage({
         />
       )}
 
-      <section className="space-y-4 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+      <section className="space-y-4 rounded-xl border border-line bg-surface p-4 sm:p-5">
         <div className="space-y-1">
-          <h2 className="text-xl font-bold">Fotos</h2>
+          <h2 className="section-title">Fotos</h2>
           <p className="text-muted">
             Até 5 fotos. A primeira é a capa, que aparece na prévia do WhatsApp.
           </p>

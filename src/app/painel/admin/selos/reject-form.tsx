@@ -4,7 +4,11 @@ import { useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 
 /** Recusar exige um motivo (o organizador vê no perfil). */
-export function RejectForm({ action }: { action: (formData: FormData) => Promise<void> }) {
+export function RejectForm({
+  action,
+}: {
+  action: (formData: FormData) => Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
 
   if (!open) {
@@ -12,7 +16,7 @@ export function RejectForm({ action }: { action: (formData: FormData) => Promise
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="min-h-12 w-full rounded-xl border-2 border-line-strong px-4 font-semibold text-danger hover:bg-danger-soft"
+        className="min-h-10 w-full rounded-lg border border-line px-4 text-sm font-medium text-danger hover:bg-danger-soft sm:w-auto"
       >
         Recusar
       </button>

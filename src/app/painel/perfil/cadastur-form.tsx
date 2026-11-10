@@ -149,7 +149,7 @@ export function CadasturForm({ organizerId }: { organizerId: string }) {
           type="file"
           accept="application/pdf,image/jpeg,image/png"
           required
-          className="block w-full text-base file:mr-3 file:min-h-12 file:rounded-lg file:border-0 file:bg-surface-muted file:px-4 file:font-semibold"
+          className="block w-full text-base file:mr-3 file:min-h-11 sm:min-h-9 file:rounded-lg file:border-0 file:bg-surface-muted file:px-4 file:font-semibold"
           {...aria("file")}
         />
         <p className="mt-1 text-sm text-muted">

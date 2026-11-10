@@ -13,7 +13,7 @@ export default async function PainelLayout({ children }: LayoutProps<"/painel">)
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-3">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
           <Link href="/painel" aria-label="Ir para o painel">
             <Logo />
           </Link>
@@ -22,21 +22,21 @@ export default async function PainelLayout({ children }: LayoutProps<"/painel">)
             {isAdmin && (
               <Link
                 href="/painel/admin"
-                className="inline-flex min-h-12 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
+                className="inline-flex min-h-11 sm:min-h-9 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
               >
                 Admin
               </Link>
             )}
             <Link
               href="/painel/perfil"
-              className="inline-flex min-h-12 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
+              className="inline-flex min-h-11 sm:min-h-9 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
             >
               Perfil
             </Link>
             <form action={signOut}>
               <button
                 type="submit"
-                className="inline-flex min-h-12 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
+                className="inline-flex min-h-11 sm:min-h-9 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
               >
                 Sair
               </button>
@@ -44,7 +44,7 @@ export default async function PainelLayout({ children }: LayoutProps<"/painel">)
           </nav>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
     </div>
   );
 }

@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ACTION_LABELS, requireAdmin, type ActivityEvent, type AuditEntry } from "@/lib/admin";
+import {
+  ACTION_LABELS,
+  requireAdmin,
+  type ActivityEvent,
+  type AuditEntry,
+} from "@/lib/admin";
 import { formatDateTimeBR } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Admin · Atividade", robots: { index: false } };
+export const metadata: Metadata = {
+  title: "Admin · Atividade",
+  robots: { index: false },
+};
 
 const KIND = {
   signup: { icon: "👤", text: "Nova conta" },
@@ -35,10 +43,10 @@ export default async function AdminAtividadePage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-extrabold tracking-tight">Atividade</h1>
+      <h1 className="page-title">Atividade</h1>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-bold">O que aconteceu por último</h2>
+        <h2 className="section-title">O que aconteceu por último</h2>
         {events.length === 0 ? (
           <p className="text-muted">Nada ainda.</p>
         ) : (
@@ -54,23 +62,34 @@ export default async function AdminAtividadePage() {
                 <>
                   <p className="font-semibold break-words">
                     {kind.icon} {kind.text}
-                    {e.label && <span className="font-normal"> · {e.label}</span>}
+                    {e.label && (
+                      <span className="font-normal"> · {e.label}</span>
+                    )}
                   </p>
                   <p className="text-sm text-muted">
                     {formatDateTimeBR(e.at)}
-                    {e.kind === "trip_created" && e.extra && ` · por ${e.extra}`}
-                    {e.kind === "registration" && e.extra && ` · ${REG_STATUS[e.extra] ?? e.extra}`}
+                    {e.kind === "trip_created" &&
+                      e.extra &&
+                      ` · por ${e.extra}`}
+                    {e.kind === "registration" &&
+                      e.extra &&
+                      ` · ${REG_STATUS[e.extra] ?? e.extra}`}
                   </p>
                 </>
               );
               return (
                 <li key={i}>
                   {href ? (
-                    <Link href={href} className="block rounded-xl border border-line bg-surface px-4 py-3 hover:border-line-hover">
+                    <Link
+                      href={href}
+                      className="block rounded-xl border border-line bg-surface px-4 py-3 hover:border-line-hover"
+                    >
                       {body}
                     </Link>
                   ) : (
-                    <div className="rounded-xl border border-line bg-surface px-4 py-3">{body}</div>
+                    <div className="rounded-xl border border-line bg-surface px-4 py-3">
+                      {body}
+                    </div>
                   )}
                 </li>
               );
@@ -81,20 +100,29 @@ export default async function AdminAtividadePage() {
 
       <section className="space-y-3">
         <div className="space-y-1">
-          <h2 className="text-xl font-bold">Log de auditoria</h2>
-          <p className="text-muted">Toda ação de admin fica registrada aqui, com quem fez e o motivo.</p>
+          <h2 className="section-title">Log de auditoria</h2>
+          <p className="text-muted">
+            Toda ação de admin fica registrada aqui, com quem fez e o motivo.
+          </p>
         </div>
         {entries.length === 0 ? (
           <p className="text-muted">Nenhuma ação de admin até agora.</p>
         ) : (
           <ul className="space-y-2">
             {entries.map((a, i) => (
-              <li key={a.id ?? i} className="rounded-xl bg-surface-muted px-4 py-3">
+              <li
+                key={a.id ?? i}
+                className="rounded-xl bg-surface-muted px-4 py-3"
+              >
                 <p className="font-semibold break-words">
                   {ACTION_LABELS[a.action] ?? a.action}
-                  {a.target_label && <span className="font-normal"> · {a.target_label}</span>}
+                  {a.target_label && (
+                    <span className="font-normal"> · {a.target_label}</span>
+                  )}
                 </p>
-                {a.details?.reason && <p className="text-ink-soft">Motivo: {a.details.reason}</p>}
+                {a.details?.reason && (
+                  <p className="text-ink-soft">Motivo: {a.details.reason}</p>
+                )}
                 <p className="text-sm text-muted">
                   {formatDateTimeBR(a.created_at)} · {a.admin_email ?? "admin"}
                 </p>
@@ -105,7 +133,7 @@ export default async function AdminAtividadePage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xl font-bold">Admins</h2>
+        <h2 className="section-title">Admins</h2>
         <ul className="list-inside list-disc text-ink-soft">
           {adminList.map((a) => (
             <li key={a.id} className="break-all">
@@ -114,7 +142,8 @@ export default async function AdminAtividadePage() {
           ))}
         </ul>
         <p className="text-sm text-muted">
-          Para adicionar ou remover admins, use o SQL Editor do Supabase (README, seção 3.3).
+          Para adicionar ou remover admins, use o SQL Editor do Supabase
+          (README, seção 3.3).
         </p>
       </section>
     </div>

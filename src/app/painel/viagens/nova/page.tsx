@@ -37,12 +37,12 @@ export default async function NovaViagemPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/painel" className="inline-flex min-h-12 items-center font-semibold text-accent">
+      <Link href="/painel" className="inline-flex min-h-11 sm:min-h-9 items-center font-semibold text-accent">
         ← Voltar
       </Link>
       <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">Nova viagem</h1>
-        <p className="text-lg text-ink-soft">
+        <h1 className="page-title">Nova viagem</h1>
+        <p className="text-base text-ink-soft">
           Preenche o básico agora. Dá para mudar tudo depois, e as fotos entram no passo
           seguinte.
         </p>

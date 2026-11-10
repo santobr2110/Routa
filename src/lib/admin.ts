@@ -207,3 +207,74 @@ export const ACTION_LABELS: Record<string, string> = {
 export function percent(part: number, total: number): number {
   return total > 0 ? Math.round((part / total) * 100) : 0;
 }
+
+/** Períodos do painel: dias e o agrupamento usado nos gráficos. */
+export const PERIODS = {
+  "7": { days: 7, bucket: "day", label: "7 dias" },
+  "30": { days: 30, bucket: "day", label: "30 dias" },
+  "90": { days: 90, bucket: "week", label: "90 dias" },
+  "365": { days: 365, bucket: "month", label: "12 meses" },
+} as const;
+export type PeriodKey = keyof typeof PERIODS;
+
+type Totals = {
+  signups: number;
+  organizers: number;
+  trips: number;
+  registrations: number;
+  cancellations: number;
+  value_cents: number;
+  paid_cents: number;
+  departures: number;
+};
+type KeyValue = { key: string; value: number };
+
+export type Analytics = {
+  from: string;
+  to: string;
+  bucket: "day" | "week" | "month";
+  days: number;
+  totals: Totals;
+  previous: Totals;
+  series: (Totals & {
+    start: string;
+    finish: string;
+    users_total: number;
+    organizers_total: number;
+    trips_total: number;
+  })[];
+  breakdowns: {
+    trips_by_terrain: KeyValue[];
+    trips_by_level: KeyValue[];
+    trips_by_status: KeyValue[];
+    trips_by_pricing: KeyValue[];
+    registrations_by_status: KeyValue[];
+    pillion: { with: number; without: number };
+    payment: { paid: number; pending: number };
+    bike_brands: KeyValue[];
+    destinations: KeyValue[];
+    lead_time: KeyValue[];
+    weekday: KeyValue[];
+    occupancy: KeyValue[];
+  };
+  top_organizers: {
+    id: string;
+    name: string;
+    trips: number;
+    registrations: number;
+    value_cents: number;
+    paid: number;
+    confirmed: number;
+  }[];
+  top_trips: {
+    id: string;
+    title: string;
+    destination: string;
+    start_date: string;
+    capacity: number;
+    organizer_name: string;
+    registrations: number;
+    confirmed: number;
+    paid: number;
+  }[];
+};

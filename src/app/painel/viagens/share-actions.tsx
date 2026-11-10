@@ -17,8 +17,8 @@ export function ShareActions({ url, message }: { url: string; message: string })
   }
 
   return (
-    <section className="space-y-3 rounded-2xl border border-line bg-surface p-4 sm:p-6">
-      <h2 className="text-xl font-bold">Chama a galera</h2>
+    <section className="space-y-3 rounded-xl border border-line bg-surface p-4 sm:p-5">
+      <h2 className="section-title">Chama a galera</h2>
       <p className="break-all text-muted">{url}</p>
       <a
         href={`https://wa.me/?text=${encodeURIComponent(message)}`}

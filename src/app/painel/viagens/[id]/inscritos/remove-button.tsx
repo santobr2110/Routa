@@ -14,7 +14,7 @@ export function RemoveButton({ name }: { name: string }) {
           e.preventDefault();
         }
       }}
-      className="inline-flex min-h-12 items-center rounded-xl px-3 font-semibold text-danger hover:bg-danger-soft disabled:opacity-60"
+      className="inline-flex min-h-11 sm:min-h-9 items-center rounded-xl px-3 font-semibold text-danger hover:bg-danger-soft disabled:opacity-60"
     >
       {pending ? "Removendo…" : "Remover da viagem"}
     </button>

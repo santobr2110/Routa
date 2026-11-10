@@ -49,7 +49,12 @@ export default async function PainelPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-extrabold tracking-tight">E aí, {firstName}! 🏍️</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="page-title">E aí, {firstName}!</h1>
+        <Link href="/painel/viagens/nova" className="btn-primary">
+          + Criar viagem
+        </Link>
+      </div>
 
       {organizer.suspended_at && (
         <p className="rounded-xl bg-danger-soft px-4 py-3 font-medium text-danger" role="alert">
@@ -70,22 +75,19 @@ export default async function PainelPage() {
         </Link>
       )}
 
-      <Link href="/painel/viagens/nova" className="btn-primary">
-        + Criar viagem
-      </Link>
 
       {trips.length === 0 ? (
-        <section className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-line-strong bg-surface px-6 py-12 text-center">
+        <section className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-line-strong bg-surface px-6 py-12 text-center">
           <CompassIcon className="h-12 w-12 text-faint" />
-          <h2 className="text-xl font-bold">Nenhuma viagem por aqui ainda</h2>
+          <h2 className="section-title">Nenhuma viagem por aqui ainda</h2>
           <p className="max-w-sm text-muted">
             Cria sua primeira viagem e manda o link pro grupo. Leva poucos minutos.
           </p>
         </section>
       ) : (
         <section className="space-y-3">
-          <h2 className="text-xl font-bold">Suas viagens</h2>
-          <ul className="space-y-3">
+          <h2 className="section-title">Suas viagens</h2>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {trips.map((trip) => {
               const cover = [...trip.trip_photos].sort((a, b) => a.position - b.position)[0];
               const count = counts.get(trip.id);
@@ -93,27 +95,27 @@ export default async function PainelPage() {
                 <li key={trip.id}>
                   <Link
                     href={`/painel/viagens/${trip.id}`}
-                    className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-3 hover:border-line-hover"
+                    className="card flex h-full items-center gap-4 p-3 transition-colors hover:border-line-hover"
                   >
                     {cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={photoUrl(cover.storage_path)}
                         alt=""
-                        className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                        className="h-16 w-16 shrink-0 rounded-lg object-cover"
                       />
                     ) : (
-                      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-surface-muted">
+                      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-surface-muted">
                         <CompassIcon className="h-8 w-8 text-faint" />
                       </span>
                     )}
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-lg font-bold">{trip.title}</span>
-                      <span className="block text-muted">
+                      <span className="block truncate font-medium">{trip.title}</span>
+                      <span className="block text-sm text-muted">
                         {formatDateBR(trip.start_date)}
                         {trip.end_date !== trip.start_date && ` a ${formatDateBR(trip.end_date)}`}
                       </span>
-                      <span className="block text-sm font-semibold text-ink-soft">
+                      <span className="block text-sm text-ink-soft">
                         {STATUS_LABELS[trip.status]}
                         {count &&
                           ` · ${count.confirmed} ${count.confirmed === 1 ? "confirmado" : "confirmados"}` +

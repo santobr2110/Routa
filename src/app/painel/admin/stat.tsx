@@ -9,9 +9,11 @@ export function Stat({
   detail?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4">
-      <dt className="text-sm font-semibold text-muted">{label}</dt>
-      <dd className="mt-1 text-3xl font-extrabold tracking-tight">{value}</dd>
+    <div className="card p-4">
+      <dt className="text-sm text-muted">{label}</dt>
+      <dd className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">
+        {value}
+      </dd>
       {detail && <dd className="mt-1 text-sm text-muted">{detail}</dd>}
     </div>
   );
@@ -33,7 +35,9 @@ export function Badge({
     brand: "bg-brand-soft text-ink",
   };
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold ${tones[tone]}`}>
+    <span
+      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${tones[tone]}`}
+    >
       {children}
     </span>
   );

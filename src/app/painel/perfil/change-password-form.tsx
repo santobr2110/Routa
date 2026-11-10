@@ -12,12 +12,12 @@ export function ChangePasswordForm() {
 
   return (
     <section aria-labelledby="change-password-title" className="space-y-4 border-t border-line pt-8">
-      <h2 id="change-password-title" className="text-2xl font-extrabold tracking-tight">
+      <h2 id="change-password-title" className="text-2xl font-semibold tracking-tight">
         Trocar senha
       </h2>
 
       {state.savedAt && !state.errors && (
-        <p className="rounded-xl border-2 border-accent/40 bg-accent/10 p-4 text-base font-semibold" role="status">
+        <p className="rounded-xl border border-accent/40 bg-accent/10 p-4 text-base font-semibold" role="status">
           Senha trocada ✅ Use a nova da próxima vez que entrar.
         </p>
       )}

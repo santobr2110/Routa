@@ -11,10 +11,10 @@ export default function Home() {
       </div>
 
       <div className="space-y-4">
-        <h1 className="text-4xl font-extrabold leading-tight tracking-tight">
+        <h1 className="text-4xl font-semibold leading-tight tracking-tight">
           Bora de cara pro vento?
         </h1>
-        <p className="text-lg text-ink-soft">
+        <p className="text-base text-ink-soft">
           Crie a página da sua viagem de moto em minutos. A Routa cuida das inscrições, de
           quem já pagou, da lista de espera e do termo de responsabilidade. Você só manda o
           link no grupo.

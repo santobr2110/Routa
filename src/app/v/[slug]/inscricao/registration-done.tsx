@@ -28,11 +28,11 @@ export function RegistrationDone({
 
   if (result.status === "waitlist") {
     return (
-      <section className="space-y-4 rounded-2xl border border-line bg-surface p-5" role="status">
-        <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-extrabold outline-none">
+      <section className="space-y-4 rounded-xl border border-line bg-surface p-5" role="status">
+        <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold outline-none">
           Você está na lista de espera, {firstName}! ⏳
         </h2>
-        <p className="text-lg">
+        <p className="text-base">
           As vagas lotaram, mas sua inscrição ficou guardada na fila, por ordem de chegada. Se
           abrir uma vaga, <strong>{result.organizer_name}</strong> te chama no WhatsApp.
         </p>
@@ -63,23 +63,23 @@ export function RegistrationDone({
   return (
     <section className="space-y-5" role="status">
       <div className="space-y-2">
-        <h2 ref={headingRef} tabIndex={-1} className="text-3xl font-extrabold outline-none">
+        <h2 ref={headingRef} tabIndex={-1} className="text-3xl font-semibold outline-none">
           Vaga garantida, {firstName}! 🏍️
         </h2>
-        <p className="text-lg text-ink-soft">
+        <p className="text-base text-ink-soft">
           Agora é só fazer o Pix e mandar o comprovante pro organizador.
         </p>
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-line bg-surface p-5">
+      <div className="space-y-4 rounded-xl border border-line bg-surface p-5">
         <div>
           <p className="text-muted">
             Valor {result.has_pillion ? "(piloto + garupa)" : "(piloto)"}
           </p>
           {amount !== null ? (
-            <p className="text-3xl font-extrabold">{formatBRL(amount)}</p>
+            <p className="text-3xl font-semibold">{formatBRL(amount)}</p>
           ) : (
-            <p className="text-lg font-semibold">
+            <p className="text-base font-semibold">
               {result.organizer_name} vai te passar o valor do rateio.
             </p>
           )}
@@ -87,7 +87,7 @@ export function RegistrationDone({
 
         <div>
           <p className="text-muted">Chave Pix de {result.organizer_name}</p>
-          <p className="text-xl font-bold break-all">{result.pix_key}</p>
+          <p className="section-title break-all">{result.pix_key}</p>
         </div>
         <button type="button" onClick={copyPix} className="btn-secondary" aria-live="polite">
           {copied ? "Chave copiada! ✅" : "Copiar chave Pix"}
@@ -117,7 +117,7 @@ export function RegistrationDone({
 
 function BackLink({ slug }: { slug: string }) {
   return (
-    <Link href={`/v/${slug}`} className="inline-flex min-h-12 items-center font-semibold text-accent">
+    <Link href={`/v/${slug}`} className="inline-flex min-h-11 sm:min-h-9 items-center font-semibold text-accent">
       ← Voltar para a viagem
     </Link>
   );

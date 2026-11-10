@@ -62,7 +62,9 @@ export function RegistrationForm({
   const models = modelsFor(brand);
 
   if (state.result) {
-    return <RegistrationDone trip={trip} result={state.result} name={values.name} />;
+    return (
+      <RegistrationDone trip={trip} result={state.result} name={values.name} />
+    );
   }
 
   const fixed = trip.pricingMode === "fixed" && trip.priceCents !== null;
@@ -86,53 +88,64 @@ export function RegistrationForm({
   return (
     <form action={formAction} className="space-y-6" noValidate>
       {trip.isFull && (
-        <p className="rounded-xl bg-warn-soft px-4 py-3 font-medium text-warn" role="status">
-          As vagas lotaram. Se você enviar, entra na <strong>lista de espera</strong> e o
-          organizador te avisa se abrir vaga.
+        <p
+          className="rounded-lg bg-warn-soft px-4 py-3 text-sm font-medium text-warn"
+          role="status"
+        >
+          As vagas lotaram. Se você enviar, entra na{" "}
+          <strong>lista de espera</strong> e o organizador te avisa se abrir
+          vaga.
         </p>
       )}
 
-      <section className="space-y-5 rounded-2xl border border-line bg-surface p-4 sm:p-6">
-        <h2 className="text-xl font-bold">Seus dados</h2>
+      <section className="card space-y-5 p-4 sm:p-5">
+        <h2 className="section-title">Seus dados</h2>
         <div>
           <label htmlFor="name" className="field-label">
             Nome completo
           </label>
-          <input {...field("name")} autoComplete="name" required maxLength={80} />
+          <input
+            {...field("name")}
+            autoComplete="name"
+            required
+            maxLength={80}
+          />
           {error("name")}
         </div>
-        <div>
-          <label htmlFor="whatsapp" className="field-label">
-            WhatsApp com DDD
-          </label>
-          <input
-            {...field("whatsapp")}
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel-national"
-            placeholder="(11) 99999-8888"
-            required
-          />
-          {error("whatsapp")}
-        </div>
-        <div>
-          <label htmlFor="email" className="field-label">
-            E-mail
-          </label>
-          <input
-            {...field("email")}
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            placeholder="voce@exemplo.com"
-            required
-          />
-          {error("email")}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="whatsapp" className="field-label">
+              WhatsApp com DDD
+            </label>
+            <input
+              {...field("whatsapp")}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel-national"
+              placeholder="(11) 99999-8888"
+              required
+            />
+            {error("whatsapp")}
+          </div>
+          <div>
+            <label htmlFor="email" className="field-label">
+              E-mail
+            </label>
+            <input
+              {...field("email")}
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="voce@exemplo.com"
+              required
+            />
+            {error("email")}
+          </div>
         </div>
       </section>
 
-      <section className="space-y-5 rounded-2xl border border-line bg-surface p-4 sm:p-6">
-        <h2 className="text-xl font-bold">Sua moto</h2>
+      <section className="card space-y-5 p-4 sm:p-5">
+        <h2 className="section-title">Sua moto</h2>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="bike_brand" className="field-label">
@@ -191,7 +204,11 @@ export function RegistrationForm({
             <label htmlFor="bike_color" className="field-label">
               Cor <span className="font-normal text-muted">(opcional)</span>
             </label>
-            <input {...field("bike_color")} placeholder="Ex.: vermelha" maxLength={30} />
+            <input
+              {...field("bike_color")}
+              placeholder="Ex.: vermelha"
+              maxLength={30}
+            />
             {error("bike_color")}
           </div>
         </div>
@@ -210,8 +227,8 @@ export function RegistrationForm({
               className="field-input uppercase"
             />
             <p className="mt-1 text-sm text-muted">
-              O organizador pediu a placa (check-in, pousada ou seguro). Só ele vê, e ela é
-              apagada 90 dias depois da viagem.
+              O organizador pediu a placa (check-in, pousada ou seguro). Só ele
+              vê, e ela é apagada 90 dias depois da viagem.
             </p>
             {error("bike_plate")}
           </div>
@@ -219,29 +236,40 @@ export function RegistrationForm({
       </section>
 
       {trip.acceptsPillion ? (
-        <section className="space-y-5 rounded-2xl border border-line bg-surface p-4 sm:p-6">
-          <fieldset aria-describedby={errors.has_pillion ? "has_pillion-error" : undefined}>
-            <legend className="text-xl font-bold">Vai levar garupa?</legend>
+        <section className="card space-y-5 p-4 sm:p-5">
+          <fieldset
+            aria-describedby={
+              errors.has_pillion ? "has_pillion-error" : undefined
+            }
+          >
+            <legend className="section-title">Vai levar garupa?</legend>
             <div className="mt-3 grid gap-2">
               {[
-                { value: "no", label: "Vou sozinho(a)", price: trip.priceCents },
-                { value: "yes", label: "Vou com garupa", price: trip.pillionPriceCents },
+                {
+                  value: "no",
+                  label: "Vou sozinho(a)",
+                  price: trip.priceCents,
+                },
+                {
+                  value: "yes",
+                  label: "Vou com garupa",
+                  price: trip.pillionPriceCents,
+                },
               ].map((option) => (
-                <label
-                  key={option.value}
-                  className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-2 border-line-strong bg-surface px-4 text-lg has-checked:border-brand has-checked:bg-brand-soft"
-                >
+                <label key={option.value} className="choice">
                   <input
                     type="radio"
                     name="has_pillion"
                     value={option.value}
                     defaultChecked={values.has_pillion === option.value}
                     onChange={() => setHasPillion(option.value === "yes")}
-                    className="h-5 w-5 accent-brand"
+                    className="h-4 w-4 accent-brand"
                   />
                   <span className="flex-1">{option.label}</span>
                   {fixed && option.price !== null && (
-                    <span className="font-bold">{formatBRL(option.price)}</span>
+                    <span className="font-semibold">
+                      {formatBRL(option.price)}
+                    </span>
                   )}
                 </label>
               ))}
@@ -268,38 +296,45 @@ export function RegistrationForm({
         </>
       )}
 
-      <section className="space-y-5 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+      <section className="card space-y-5 p-4 sm:p-5">
         <div className="space-y-1">
-          <h2 className="text-xl font-bold">Contato de emergência</h2>
-          <p className="text-muted">Alguém que não está na viagem, pra avisar se precisar.</p>
+          <h2 className="section-title">Contato de emergência</h2>
+          <p className="text-muted">
+            Alguém que não está na viagem, pra avisar se precisar.
+          </p>
         </div>
-        <div>
-          <label htmlFor="emergency_name" className="field-label">
-            Nome
-          </label>
-          <input {...field("emergency_name")} required maxLength={80} />
-          {error("emergency_name")}
-        </div>
-        <div>
-          <label htmlFor="emergency_phone" className="field-label">
-            Telefone com DDD
-          </label>
-          <input
-            {...field("emergency_phone")}
-            type="tel"
-            inputMode="tel"
-            placeholder="(11) 99999-8888"
-            required
-          />
-          {error("emergency_phone")}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="emergency_name" className="field-label">
+              Nome
+            </label>
+            <input {...field("emergency_name")} required maxLength={80} />
+            {error("emergency_name")}
+          </div>
+          <div>
+            <label htmlFor="emergency_phone" className="field-label">
+              Telefone com DDD
+            </label>
+            <input
+              {...field("emergency_phone")}
+              type="tel"
+              inputMode="tel"
+              placeholder="(11) 99999-8888"
+              required
+            />
+            {error("emergency_phone")}
+          </div>
         </div>
       </section>
 
-      <section className="space-y-4 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+      <section className="card space-y-4 p-4 sm:p-5">
         <details className="group">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between text-xl font-bold">
+          <summary className="flex min-h-11 sm:min-h-9 cursor-pointer list-none items-center justify-between section-title">
             Termo de responsabilidade
-            <span aria-hidden className="text-base text-accent group-open:hidden">
+            <span
+              aria-hidden
+              className="text-base text-accent group-open:hidden"
+            >
               Ler
             </span>
           </summary>
@@ -307,14 +342,14 @@ export function RegistrationForm({
             {trip.termsText}
           </p>
         </details>
-        <label className="flex min-h-14 cursor-pointer items-start gap-3 text-lg">
+        <label className="flex min-h-11 sm:min-h-10 cursor-pointer items-start gap-3 text-base">
           <input
             type="checkbox"
             name="terms"
             defaultChecked={values.terms === "on"}
             aria-invalid={errors.terms ? true : undefined}
             aria-describedby={errors.terms ? "terms-error" : undefined}
-            className="mt-1 h-6 w-6 shrink-0 accent-brand"
+            className="mt-1 h-5 w-5 shrink-0 accent-brand"
           />
           <span>Li e aceito o termo de responsabilidade.</span>
         </label>
@@ -339,9 +374,12 @@ export function RegistrationForm({
           {trip.isFull ? "Entrar na lista de espera" : "Garantir minha vaga"}
         </SubmitButton>
         <p className="text-sm text-muted">
-          Seu WhatsApp, o contato de emergência e os dados da moto só aparecem para o
-          organizador desta viagem.{" "}
-          <Link href="/privacidade" className="font-semibold text-accent underline">
+          Seu WhatsApp, o contato de emergência e os dados da moto só aparecem
+          para o organizador desta viagem.{" "}
+          <Link
+            href="/privacidade"
+            className="font-semibold text-accent underline"
+          >
             Política de privacidade
           </Link>
         </p>

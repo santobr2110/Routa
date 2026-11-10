@@ -113,7 +113,7 @@ export function PhotoManager({
                     type="button"
                     disabled={busy}
                     onClick={() => run(() => setCoverPhoto(photo.id))}
-                    className="min-h-12 border-t border-line font-semibold text-ink-soft hover:bg-surface-muted disabled:opacity-50"
+                    className="min-h-11 sm:min-h-9 border-t border-line font-semibold text-ink-soft hover:bg-surface-muted disabled:opacity-50"
                   >
                     Usar como capa
                   </button>
@@ -124,7 +124,7 @@ export function PhotoManager({
                   onClick={() => {
                     if (confirm("Remover esta foto?")) run(() => removePhoto(photo.id));
                   }}
-                  className="min-h-12 border-t border-line font-semibold text-danger hover:bg-danger-soft disabled:opacity-50"
+                  className="min-h-11 sm:min-h-9 border-t border-line font-semibold text-danger hover:bg-danger-soft disabled:opacity-50"
                 >
                   Remover
                 </button>

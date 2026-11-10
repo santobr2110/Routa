@@ -21,8 +21,8 @@ export function AuthShell({
         <ThemeToggle />
       </div>
       <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">{title}</h1>
-        {intro && <p className="text-lg text-ink-soft">{intro}</p>}
+        <h1 className="page-title">{title}</h1>
+        {intro && <p className="text-base text-ink-soft">{intro}</p>}
       </div>
       {children}
     </main>

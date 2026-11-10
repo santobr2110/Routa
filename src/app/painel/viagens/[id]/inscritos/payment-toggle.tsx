@@ -36,7 +36,7 @@ export function PaymentToggle({
         onClick={toggle}
         aria-pressed={paid}
         aria-busy={isPending}
-        className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 px-4 font-semibold ${
+        className={`inline-flex min-h-11 sm:min-h-9 w-full items-center justify-center gap-2 rounded-xl border px-4 font-semibold ${
           paid
             ? "border-success/40 bg-success-soft text-success"
             : "border-line-strong bg-surface text-ink"

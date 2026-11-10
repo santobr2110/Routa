@@ -28,6 +28,10 @@
   --success-soft: #f0fdf4;
   --warn: #78350f;
   --warn-soft: #fef3c7;
+  /* Séries dos gráficos (paleta validada para daltonismo; ordem fixa). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
   color-scheme: light;
 }
 
@@ -54,6 +58,9 @@
   --success-soft: color-mix(in srgb, #22c55e 14%, #111a2e);
   --warn: #fcd34d;
   --warn-soft: color-mix(in srgb, #f59e0b 16%, #111a2e);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
   color-scheme: dark; /* calendário, relógio e barras de rolagem nativos no escuro */
 }
 
@@ -81,6 +88,9 @@
   --color-success-soft: var(--success-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -89,24 +99,40 @@ body {
   color: var(--ink);
 }
 
-/* Botões e campos grandes: uso com luva e sob sol forte. */
+/*
+ * Componentes base. Visual enxuto: no celular os alvos de toque continuam com 44px;
+ * no desktop (sm+) ficam mais compactos, como num app de trabalho.
+ */
 @layer components {
   .btn-primary {
-    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl py-2 text-center leading-snug bg-brand px-6 text-lg font-semibold text-white transition-colors hover:bg-brand-dark focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-center text-[15px] leading-snug font-medium text-white shadow-sm transition-colors hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-10 sm:w-auto sm:text-sm;
   }
   .btn-secondary {
-    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl py-2 text-center leading-snug border-2 border-line-strong bg-surface px-6 text-lg font-semibold text-ink transition-colors hover:border-line-hover focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60;
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-center text-[15px] leading-snug font-medium text-ink transition-colors hover:border-line-hover hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 sm:min-h-10 sm:w-auto sm:text-sm;
   }
   .field-label {
-    @apply block text-base font-semibold text-ink;
+    @apply block text-sm font-medium text-ink;
   }
   .field-input {
-    @apply mt-2 block min-h-14 w-full rounded-xl border-2 border-line-strong bg-surface px-4 text-lg text-ink placeholder:text-faint focus:border-brand focus:outline-none aria-[invalid=true]:border-danger;
+    @apply mt-1.5 block min-h-11 w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-base text-ink placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none aria-[invalid=true]:border-danger sm:min-h-10 sm:text-sm;
   }
   .field-hint {
     @apply mt-1 text-sm text-muted;
   }
   .field-error {
     @apply mt-1 text-sm font-medium text-danger;
+  }
+  .card {
+    @apply rounded-xl border border-line bg-surface;
+  }
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight sm:text-[28px];
+  }
+  .section-title {
+    @apply text-base font-semibold;
+  }
+  /* Opção de escolha (rádio/checkbox) em formato de cartão. */
+  .choice {
+    @apply flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-line-strong bg-surface px-3 text-[15px] has-checked:border-brand has-checked:bg-brand-soft sm:min-h-10 sm:text-sm;
   }
 }

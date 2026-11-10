@@ -57,7 +57,7 @@ export function LoginForm() {
 
       <SubmitButton pendingText="Entrando…">Entrar</SubmitButton>
 
-      <p className="text-center text-lg">
+      <p className="text-center text-base">
         Primeira vez aqui?{" "}
         <Link href="/cadastro" className="font-semibold text-accent underline">
           Criar conta

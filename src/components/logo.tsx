@@ -14,7 +14,7 @@ export function Logo({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 text-ink ${className}`}>
       <CompassIcon />
-      <span className="text-2xl font-extrabold tracking-tight">Routa</span>
+      <span className="text-2xl font-semibold tracking-tight">Routa</span>
     </span>
   );
 }

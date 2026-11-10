@@ -120,7 +120,7 @@ Para revisar: abra o certificado, confira na consulta pública do Cadastur (http
 
 Quem está em `private.admins` vê o link **Admin** no menu e acessa `/painel/admin`:
 
-- **Visão geral:** usuários, organizadores, viagens, inscrições, pagamentos, valores, ocupação, funil (conta → perfil → viagem → publicada → inscrição), gráficos das últimas 12 semanas e quem parou no caminho (com WhatsApp).
+- **Visão geral:** escolha o período (7 dias, 30 dias, 90 dias ou 12 meses). Mostra os números do período comparados com o período anterior, a foto de agora (usuários, ativos, viagens abertas, ocupação, taxa de pagamento, selos), gráficos de atividade, valor, crescimento e cancelamentos (passe o mouse para ver cada ponto; "Ver em tabela" mostra os números), o funil (conta → perfil → viagem → publicada → inscrição), detalhamentos (terreno, nível, marcas de moto, destinos, antecedência da inscrição, dia da semana, garupa, pagamento, ocupação), os organizadores e as viagens com mais inscrições e quem parou no caminho (com WhatsApp). Precisa da migration `0009`.
 - **Usuários:** busca por nome, e-mail ou WhatsApp; detalhe com viagens, selos e histórico; **suspender** (tira as viagens do ar, fecha inscrições, impede criar/editar viagens) e **reativar**.
 - **Viagens:** filtros por situação e data; detalhe com números e inscritos (sem dados sensíveis); **tirar do ar** e **pôr de volta**.
 - **Selos** (seção 3.2) e **Atividade:** o que aconteceu por último, log de auditoria (toda ação de admin, com quem fez e o motivo) e a lista de admins.

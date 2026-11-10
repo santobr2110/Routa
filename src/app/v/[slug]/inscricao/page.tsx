@@ -26,27 +26,27 @@ export default async function InscricaoPage({ params }: PageProps<"/v/[slug]/ins
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="mx-auto flex w-full max-w-xl items-center justify-between px-4 py-3">
+      <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/" aria-label="Routa, página inicial">
           <Logo />
         </Link>
         <ThemeToggle />
       </header>
 
-      <main className="mx-auto w-full max-w-xl space-y-6 px-4 pb-12">
+      <main className="mx-auto w-full max-w-3xl space-y-6 px-4 pb-12 sm:px-6">
         <Link
           href={`/v/${trip.slug}`}
-          className="inline-flex min-h-12 items-center font-semibold text-accent"
+          className="inline-flex min-h-11 sm:min-h-9 items-center font-semibold text-accent"
         >
           ← Ver a viagem
         </Link>
 
         <div className="space-y-1">
-          <p className="text-lg font-semibold text-accent">{trip.destination}</p>
-          <h1 className="text-3xl leading-tight font-extrabold tracking-tight break-words">
+          <p className="text-base font-semibold text-accent">{trip.destination}</p>
+          <h1 className="text-3xl leading-tight font-semibold tracking-tight break-words">
             {trip.title}
           </h1>
-          <p className="text-lg text-muted">📅 {dates}</p>
+          <p className="text-base text-muted">📅 {dates}</p>
         </div>
 
         {trip.registration_open ? (
@@ -66,7 +66,7 @@ export default async function InscricaoPage({ params }: PageProps<"/v/[slug]/ins
           />
         ) : (
           <p
-            className="rounded-2xl border border-line bg-surface p-5 text-lg font-semibold"
+            className="rounded-xl border border-line bg-surface p-5 text-base font-semibold"
             role="status"
           >
             As inscrições desta viagem estão encerradas.

@@ -9,15 +9,15 @@ export const metadata: Metadata = { title: "Política de privacidade" };
 export default function PrivacidadePage() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3">
+      <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/" aria-label="Routa, página inicial">
           <Logo />
         </Link>
         <ThemeToggle />
       </header>
 
-      <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-12 text-lg">
-        <h1 className="text-3xl font-extrabold tracking-tight">Política de privacidade</h1>
+      <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-12 text-base">
+        <h1 className="page-title">Política de privacidade</h1>
         <p className="text-ink-soft">
           A Routa ajuda organizadores a montar viagens de moto em grupo. Aqui está, sem
           juridiquês, o que fazemos com os seus dados.
@@ -98,7 +98,7 @@ export default function PrivacidadePage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="text-xl font-bold">{title}</h2>
+      <h2 className="section-title">{title}</h2>
       {children}
     </section>
   );
