@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { daysUntil, sealState } from "@/lib/cadastur";
 import { formatCnpj } from "@/lib/cnpj";
 import { formatDateBR, formatDateTimeBR } from "@/lib/format";
@@ -8,14 +7,11 @@ import { CadasturForm } from "./cadastur-form";
 /** Seção do perfil: pedir, acompanhar e renovar o selo Cadastur. */
 export async function CadasturSection({ organizerId }: { organizerId: string }) {
   const supabase = await createClient();
-  const [{ data: requests, error }, { data: isAdmin }] = await Promise.all([
-    supabase
-      .from("cadastur_verifications")
-      .select("id, cnpj, valid_until, status, reject_reason, reviewed_at, created_at")
-      .order("created_at", { ascending: false })
-      .limit(10),
-    supabase.rpc("is_admin"),
-  ]);
+  const { data: requests, error } = await supabase
+    .from("cadastur_verifications")
+    .select("id, cnpj, valid_until, status, reject_reason, reviewed_at, created_at")
+    .order("created_at", { ascending: false })
+    .limit(10);
   if (error) throw error;
 
   const pending = requests.find((r) => r.status === "pending");
@@ -72,12 +68,6 @@ export async function CadasturSection({ organizerId }: { organizerId: string }) 
       )}
 
       {canRequest && <CadasturForm organizerId={organizerId} />}
-
-      {isAdmin && (
-        <Link href="/painel/admin/selos" className="inline-flex min-h-11 sm:min-h-9 items-center font-semibold text-accent">
-          Admin: revisar pedidos de selo →
-        </Link>
-      )}
     </section>
   );
 }
