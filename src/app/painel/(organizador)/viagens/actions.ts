@@ -1,6 +1,7 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
+import { parsePixKey } from "@/lib/pix";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -46,7 +47,8 @@ const ERRORS: Record<TripField, string> = {
   terrain_percent: "Coloca quanto % da viagem é nesse terreno (de 1 a 100).",
   capacity: "Quantas motos cabem? (de 1 a 500)",
   requires_plate: "Valor inválido.",
-  pix_key: "Coloca a chave Pix (CPF, e-mail, telefone ou aleatória).",
+  pix_key:
+    "Não reconhecemos essa chave Pix. Use CPF, CNPJ, celular com DDD, e-mail ou a chave aleatória.",
   terms_text: "O termo precisa ter pelo menos algumas linhas.",
 };
 
@@ -103,7 +105,13 @@ function parseTrip(formData: FormData) {
   );
   const capacity = check("capacity", z.coerce.number().int().min(1).max(500), values.capacity);
   const requires_plate = values.requires_plate === "on";
-  const pix_key = check("pix_key", z.string().trim().min(3).max(140), values.pix_key);
+  // A chave é guardada no formato do Pix (celular com +55, CPF só números…) para o QR Code.
+  const pixParsed = parsePixKey(values.pix_key ?? "");
+  const pix_key = check(
+    "pix_key",
+    z.string().trim().min(3).max(140),
+    pixParsed ? pixParsed.value : "",
+  );
   const terms_text = check("terms_text", z.string().trim().min(20).max(10000), values.terms_text);
 
   if (Object.keys(errors).length > 0) return { values, errors } as const;

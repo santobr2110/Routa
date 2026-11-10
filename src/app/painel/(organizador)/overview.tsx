@@ -227,7 +227,19 @@ function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
                   {t.paid}/{t.confirmed}
                 </td>
                 <td className="px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
-                  {t.fixed ? formatBRL(t.value_cents - t.paid_cents) : "rateio"}
+                  {t.paid < t.confirmed ? (
+                    <Link
+                      href={`/painel/viagens/${t.id}/cobranca`}
+                      className="font-medium text-accent hover:underline"
+                      title="Cobrar quem não pagou"
+                    >
+                      {t.fixed ? formatBRL(t.value_cents - t.paid_cents) : "rateio"} · cobrar
+                    </Link>
+                  ) : t.fixed ? (
+                    formatBRL(0)
+                  ) : (
+                    "rateio"
+                  )}
                 </td>
                 <td className="px-4 py-2.5 text-right whitespace-nowrap">
                   <Link
@@ -266,6 +278,14 @@ function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
                 {t.fixed && ` · ${formatBRL(t.value_cents - t.paid_cents)} a receber`}
               </p>
             </Link>
+            {t.paid < t.confirmed && (
+              <Link
+                href={`/painel/viagens/${t.id}/cobranca`}
+                className="mt-1 inline-flex min-h-9 items-center px-1 text-sm font-medium text-accent"
+              >
+                Cobrar {t.confirmed - t.paid} pendente(s) →
+              </Link>
+            )}
           </li>
         ))}
       </ul>

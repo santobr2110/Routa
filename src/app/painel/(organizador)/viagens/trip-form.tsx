@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
+import { PIX_KEY_LABELS, formatPixKey, parsePixKey } from "@/lib/pix";
 import {
   LEVEL_LABELS,
   TERRAIN_LABELS,
@@ -25,7 +26,6 @@ const HINTS: Partial<Record<TripField, string>> = {
   pillion_price:
     "Valor fechado da dupla. Deixa vazio se a viagem não aceita garupa.",
   terrain_percent: "Ex.: 80 = 80% da viagem nesse terreno.",
-  pix_key: "Só aparece para quem garantiu a vaga.",
   terms_text:
     "Já vem com um texto padrão. Ajuste do jeito que fizer sentido pro seu grupo. O inscrito precisa aceitar para se inscrever.",
 };
@@ -310,19 +310,10 @@ export function TripForm({
           </>
         )}
 
-        <div>
-          <label htmlFor="pix_key" className="field-label">
-            Sua chave Pix
-          </label>
-          <input
-            {...field("pix_key")}
-            required
-            maxLength={140}
-            autoComplete="off"
-            className="field-input"
-          />
-          {message("pix_key")}
-        </div>
+        <PixKeyField
+          field={field("pix_key")}
+          error={message("pix_key")}
+        />
       </Section>
 
       <Section title="Termo de responsabilidade">
@@ -532,6 +523,54 @@ function MoneyField({
         />
       </div>
       {message(name)}
+    </div>
+  );
+}
+
+/**
+ * Chave Pix com a leitura ao vivo: mostra como a Routa entendeu a chave (CPF, celular…),
+ * que é o que vai no QR Code. 11 números com CPF válido viram CPF; para celular, use +55.
+ */
+function PixKeyField({
+  field,
+  error,
+}: {
+  field: {
+    id: string;
+    name: string;
+    defaultValue: string;
+    "aria-invalid"?: boolean;
+    "aria-describedby"?: string;
+  };
+  error: React.ReactNode;
+}) {
+  const [value, setValue] = useState(field.defaultValue);
+  const parsed = parsePixKey(value);
+  return (
+    <div>
+      <label htmlFor="pix_key" className="field-label">
+        Sua chave Pix
+      </label>
+      <input
+        {...field}
+        defaultValue={undefined}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        aria-describedby={field["aria-describedby"] ?? "pix_key-hint"}
+        required
+        maxLength={140}
+        autoComplete="off"
+        className="field-input"
+      />
+      {error ?? (
+        <p id="pix_key-hint" className="field-hint" aria-live="polite">
+          {!value.trim()
+            ? "CPF, CNPJ, celular com DDD, e-mail ou chave aleatória. Quem garante a vaga recebe o QR Code com o valor certo."
+            : parsed
+              ? `Entendemos: ${PIX_KEY_LABELS[parsed.type]} ${formatPixKey(parsed)}.${parsed.type === "cpf" ? " Se for celular, escreva com +55 na frente." : ""}`
+              : "Ainda não reconhecemos essa chave. Confira se está completa."}
+        </p>
+      )}
     </div>
   );
 }

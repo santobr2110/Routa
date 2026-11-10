@@ -460,6 +460,7 @@ export function tripNumbers(
       : [];
 
   return {
+    tripId: trip.id,
     capacity: trip.capacity,
     confirmed: confirmed.length,
     waitlist: regs.filter((r) => r.status === "waitlist").length,

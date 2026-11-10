@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BarList } from "@/components/charts/bar-list";
 import { TimeSeries } from "@/components/charts/time-series";
 import { Kpi, Occupancy } from "@/components/stats";
@@ -51,8 +52,15 @@ export function TripNumbersView({ n }: { n: Numbers }) {
           </>
         )}
       </dl>
-      {n.fixed && n.paid_cents > 0 && (
-        <p className="-mt-5 text-xs text-muted">{formatBRL(n.paid_cents)} já marcado como pago.</p>
+      {(n.paid_cents > 0 || n.paid < n.confirmed) && (
+        <p className="-mt-5 text-xs text-muted">
+          {n.fixed && n.paid_cents > 0 && `${formatBRL(n.paid_cents)} já marcado como pago. `}
+          {n.paid < n.confirmed && (
+            <Link href={`/painel/viagens/${n.tripId}/cobranca`} className="font-medium text-accent hover:underline">
+              Cobrar quem não pagou →
+            </Link>
+          )}
+        </p>
       )}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px] [&>*]:min-w-0">

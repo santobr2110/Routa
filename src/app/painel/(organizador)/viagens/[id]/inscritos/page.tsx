@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requireOrganizer } from "@/lib/auth";
 import { describeBike, formatPlate } from "@/lib/bikes";
 import { formatBRL, formatBrPhone, formatDateTimeBR, whatsappLink } from "@/lib/format";
+import { pixPayload, pixTxid } from "@/lib/pix";
 import { REGISTRATION_COLUMNS, amountDue } from "@/lib/registrations";
 import { createClient } from "@/lib/supabase/server";
 import { cancelRegistration } from "./actions";
@@ -56,12 +57,21 @@ export default async function InscritosPage({
   // Quem acabou de sair da fila (veio na URL depois de remover alguém).
   const promotedIds = typeof promovido === "string" ? promovido.split(",") : [];
   const promoted = confirmed.filter((r) => promotedIds.includes(r.id));
+  const pixCode = (registrationId: string, amount: number | null) =>
+    pixPayload({
+      key: trip.pix_key,
+      name: organizer.name,
+      amountCents: amount,
+      txid: pixTxid(registrationId),
+    });
   const promotedMessage = (r: (typeof confirmed)[number]) => {
     const due = amountDue(trip, r.has_pillion);
     return [
       `Oi, ${r.name.split(" ")[0]}! Abriu uma vaga no ${trip.title} e ela é sua! 🎉`,
       due !== null ? `O valor é ${formatBRL(due)}.` : "Já te passo o valor do rateio.",
-      `Minha chave Pix: ${trip.pix_key}. Me manda o comprovante por aqui.`,
+      pixCode(r.id, due)
+        ? `Pix copia e cola (é só colar no app do banco):\n\n${pixCode(r.id, due)}\n\nMe manda o comprovante por aqui.`
+        : `Minha chave Pix: ${trip.pix_key}. Me manda o comprovante por aqui.`,
     ].join(" ");
   };
 

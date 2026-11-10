@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { CopyButton, PixQr } from "@/components/pix-qr";
 import { formatBRL, whatsappLink } from "@/lib/format";
+import { PIX_KEY_LABELS as PIX_KEY_LABEL, formatPixKey, parsePixKey, pixPayload, pixTxid } from "@/lib/pix";
 import type { RegisterResult } from "./actions";
 import type { FormTrip } from "./registration-form";
 
@@ -17,7 +19,6 @@ export function RegistrationDone({
   name: string;
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [copied, setCopied] = useState(false);
   const firstName = name.trim().split(/\s+/)[0];
 
   // Leva o foco (e a tela) para o resultado, que substitui o formulário.
@@ -50,48 +51,77 @@ export function RegistrationDone({
       : "Qual o valor pra eu fazer o Pix?",
   ].join(" ");
 
-  async function copyPix() {
-    try {
-      await navigator.clipboard.writeText(result.pix_key ?? "");
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      window.prompt("Copie a chave Pix:", result.pix_key ?? "");
-    }
-  }
+  const pixKey = result.pix_key ?? "";
+  const parsedKey = parsePixKey(pixKey);
+  const pixCode = pixPayload({
+    key: pixKey,
+    name: result.organizer_name,
+    amountCents: amount,
+    txid: pixTxid(result.registration_id),
+  });
 
   return (
     <section className="space-y-5" role="status">
       <div className="space-y-2">
-        <h2 ref={headingRef} tabIndex={-1} className="text-3xl font-semibold outline-none">
+        <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold outline-none sm:text-3xl">
           Vaga garantida, {firstName}! 🏍️
         </h2>
         <p className="text-base text-ink-soft">
-          Agora é só fazer o Pix e mandar o comprovante pro organizador.
+          Agora é só pagar o Pix e mandar o comprovante pro organizador.
         </p>
       </div>
 
-      <div className="space-y-4 rounded-xl border border-line bg-surface p-5">
-        <div>
-          <p className="text-muted">
-            Valor {result.has_pillion ? "(piloto + garupa)" : "(piloto)"}
-          </p>
-          {amount !== null ? (
-            <p className="text-3xl font-semibold">{formatBRL(amount)}</p>
-          ) : (
-            <p className="text-base font-semibold">
-              {result.organizer_name} vai te passar o valor do rateio.
-            </p>
+      <div className="card space-y-5 p-5">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+          {pixCode && (
+            <div className="flex flex-col items-center gap-2">
+              <PixQr code={pixCode} />
+              <p className="text-xs text-muted">Aponte a câmera do app do banco</p>
+            </div>
           )}
+          <div className="min-w-0 flex-1 space-y-4">
+            <div>
+              <p className="text-sm text-muted">
+                Valor {result.has_pillion ? "(piloto + garupa)" : "(piloto)"}
+              </p>
+              {amount !== null ? (
+                <p className="text-3xl font-semibold tabular-nums">{formatBRL(amount)}</p>
+              ) : (
+                <p className="font-semibold">
+                  {result.organizer_name} vai te passar o valor do rateio. No Pix, é só digitar o
+                  valor.
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-muted">
+                Pix para {result.organizer_name}
+                {parsedKey && ` · ${PIX_KEY_LABEL[parsedKey.type]}`}
+              </p>
+              <p className="font-medium break-all">
+                {parsedKey ? formatPixKey(parsedKey) : pixKey}
+              </p>
+            </div>
+            <div className="grid gap-2 sm:flex sm:flex-wrap">
+              {pixCode && (
+                <CopyButton
+                  text={pixCode}
+                  label="Copiar Pix copia e cola"
+                  copiedLabel="Código copiado! ✅"
+                  className="btn-primary"
+                />
+              )}
+              <CopyButton text={parsedKey?.value ?? pixKey} label="Copiar só a chave" copiedLabel="Chave copiada! ✅" />
+            </div>
+            {pixCode && (
+              <p className="text-xs text-muted">
+                No app do banco: Pix → Pix copia e cola → cole o código.
+                {amount !== null && " O valor já vem preenchido."} Confira o nome de quem recebe
+                antes de pagar.
+              </p>
+            )}
+          </div>
         </div>
-
-        <div>
-          <p className="text-muted">Chave Pix de {result.organizer_name}</p>
-          <p className="section-title break-all">{result.pix_key}</p>
-        </div>
-        <button type="button" onClick={copyPix} className="btn-secondary" aria-live="polite">
-          {copied ? "Chave copiada! ✅" : "Copiar chave Pix"}
-        </button>
       </div>
 
       {result.organizer_whatsapp && (
