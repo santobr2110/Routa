@@ -51,12 +51,33 @@ export function ClubForm({
       </p>
     ) : null;
 
+  // Ligada no banco (último estado salvo) x liberada só para editar antes de ligar.
+  const live = values.page_enabled === "on";
+  const [unlocked, setUnlocked] = useState(false);
+  const editable = live || unlocked;
+  // Depois de cada envio, volta a seguir o que está salvo.
+  const [seenState, setSeenState] = useState(state);
+  if (seenState !== state) {
+    setSeenState(state);
+    // Só depois de salvar ou desligar; com erro, o formulário continua aberto para corrigir.
+    if (state.saved) setUnlocked(false);
+  }
+
+  const notice =
+    state.saved &&
+    (state.notice === "off"
+      ? "Página fora do ar. Nada foi apagado: quando ligar de novo, volta tudo como estava."
+      : state.notice === "on"
+        ? "Página no ar."
+        : "Alterações salvas.");
+
   return (
     <form action={formAction} className="space-y-6" noValidate>
-      {state.saved && (
+      <input type="hidden" name="page_enabled" value={live ? "on" : ""} />
+      {notice && (
         <p className="rounded-xl bg-success-soft px-4 py-3 text-sm font-medium text-success" role="status">
-          Página salva.{" "}
-          {values.page_enabled === "on" && values.page_slug && (
+          {notice}{" "}
+          {live && values.page_slug && (
             <Link href={`/c/${values.page_slug}`} target="_blank" className="underline">
               Ver a página
             </Link>
@@ -69,193 +90,230 @@ export function ClubForm({
         </p>
       )}
 
-      <section className="card grid gap-5 p-4 sm:p-5 lg:grid-cols-[200px_minmax(0,1fr)]">
-        <h2 className="section-title">Página</h2>
-        <div className="space-y-5">
-          <label className="choice">
-            <input
-              type="checkbox"
-              name="page_enabled"
-              defaultChecked={values.page_enabled === "on"}
-              className="h-4 w-4 accent-brand"
-            />
-            Página no ar (qualquer pessoa com o link pode ver)
-          </label>
-          <div className="grid gap-5 xl:grid-cols-2">
-            <div>
-              <label htmlFor="page_name" className="field-label">
-                Nome do clube
-              </label>
-              <input
-                {...field("page_name")}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={60}
-                placeholder="Ex.: Moto Clube Estrada Real"
-                className="field-input"
-              />
-              {message("page_name")}
-            </div>
-            <div>
-              <label htmlFor="page_slug" className="field-label">
-                Endereço da página
-              </label>
-              <div className="mt-1.5 flex items-center rounded-lg border border-line-strong bg-surface focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
-                <span className="shrink-0 pl-3 text-sm text-muted">/c/</span>
+      <section className="card flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
+        <div className="space-y-1.5">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-sm font-semibold ${live ? "bg-success-soft text-success" : "bg-surface-muted text-muted"}`}
+          >
+            <span aria-hidden className={`h-2 w-2 rounded-full ${live ? "bg-success" : "bg-faint"}`} />
+            {live ? "No ar" : "Fora do ar"}
+          </span>
+          <p className="text-sm text-muted">
+            {live
+              ? "Qualquer pessoa com o link vê a página, e suas viagens mostram o nome e a cor do clube."
+              : unlocked
+                ? "Confira os dados abaixo e clique em \u201cSalvar e colocar no ar\u201d."
+                : "Ninguém vê a página agora. Seus dados continuam guardados; ligue para editar e publicar."}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {live ? (
+            <SubmitButton
+              name="intent"
+              value="disable"
+              pendingText="Tirando do ar…"
+              className="btn-secondary w-auto"
+            >
+              Tirar do ar
+            </SubmitButton>
+          ) : unlocked ? (
+            <button type="button" onClick={() => setUnlocked(false)} className="btn-secondary w-auto">
+              Cancelar
+            </button>
+          ) : (
+            <button type="button" onClick={() => setUnlocked(true)} className="btn-primary w-auto">
+              Ligar a página
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* Com a página desligada, tudo fica travado até o organizador ligar. */}
+      <fieldset disabled={!editable} className="space-y-6 transition-opacity disabled:opacity-60">
+        <section className="card grid gap-5 p-4 sm:p-5 lg:grid-cols-[200px_minmax(0,1fr)]">
+          <h2 className="section-title">Página</h2>
+          <div className="space-y-5">
+            <div className="grid gap-5 xl:grid-cols-2">
+              <div>
+                <label htmlFor="page_name" className="field-label">
+                  Nome do clube
+                </label>
                 <input
-                  {...field("page_slug")}
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                  maxLength={40}
-                  autoComplete="off"
-                  placeholder="moto-clube-x"
-                  className="min-h-11 w-full min-w-0 rounded-lg bg-transparent px-1 py-2 text-base text-ink outline-none sm:min-h-10 sm:text-sm"
+                  {...field("page_name")}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={60}
+                  placeholder="Ex.: Moto Clube Estrada Real"
+                  className="field-input"
                 />
+                {message("page_name")}
               </div>
-              {message("page_slug")}
-              {slug && <p className="field-hint break-all">{`${siteUrl}/c/${slug}`}</p>}
+              <div>
+                <label htmlFor="page_slug" className="field-label">
+                  Endereço da página
+                </label>
+                <div className="mt-1.5 flex items-center rounded-lg border border-line-strong bg-surface focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+                  <span className="shrink-0 pl-3 text-sm text-muted">/c/</span>
+                  <input
+                    {...field("page_slug")}
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                    maxLength={40}
+                    autoComplete="off"
+                    placeholder="moto-clube-x"
+                    className="min-h-11 w-full min-w-0 rounded-lg bg-transparent px-1 py-2 text-base text-ink outline-none sm:min-h-10 sm:text-sm"
+                  />
+                </div>
+                {message("page_slug")}
+                {slug && <p className="field-hint break-all">{`${siteUrl}/c/${slug}`}</p>}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="card grid gap-5 p-4 sm:p-5 lg:grid-cols-[200px_minmax(0,1fr)]">
-        <h2 className="section-title">Sobre o clube</h2>
-        <div className="space-y-5">
-          <div>
-            <label htmlFor="page_bio" className="field-label">
-              Descrição
-            </label>
-            <textarea
-              {...field("page_bio")}
-              defaultValue={values.page_bio}
-              rows={5}
-              maxLength={800}
-              className="field-input"
-            />
-            {message("page_bio")}
-          </div>
-          <div className="grid gap-5 xl:grid-cols-2">
+        <section className="card grid gap-5 p-4 sm:p-5 lg:grid-cols-[200px_minmax(0,1fr)]">
+          <h2 className="section-title">Sobre o clube</h2>
+          <div className="space-y-5">
             <div>
-              <label htmlFor="page_city" className="field-label">
-                Cidade <span className="font-normal text-muted">(opcional)</span>
+              <label htmlFor="page_bio" className="field-label">
+                Descrição
               </label>
-              <input
-                {...field("page_city")}
-                defaultValue={values.page_city}
-                maxLength={60}
-                placeholder="Ex.: Campinas, SP"
+              <textarea
+                {...field("page_bio")}
+                defaultValue={values.page_bio}
+                rows={5}
+                maxLength={800}
                 className="field-input"
               />
-              {message("page_city")}
+              {message("page_bio")}
             </div>
-            <div>
-              <label htmlFor="page_instagram" className="field-label">
-                Instagram <span className="font-normal text-muted">(opcional)</span>
-              </label>
-              <input
-                {...field("page_instagram")}
-                defaultValue={values.page_instagram}
-                maxLength={60}
-                placeholder="motoclubex"
-                autoComplete="off"
-                className="field-input"
-              />
-              {message("page_instagram")}
-            </div>
-          </div>
-          <label className="choice">
-            <input
-              type="checkbox"
-              name="page_show_whatsapp"
-              defaultChecked={values.page_show_whatsapp === "on"}
-              className="h-4 w-4 accent-brand"
-            />
-            Mostrar o botão &quot;Falar no WhatsApp&quot; (com o número do seu perfil)
-          </label>
-        </div>
-      </section>
-
-      <section className="card grid gap-5 p-4 sm:p-5 lg:grid-cols-[200px_minmax(0,1fr)]">
-        <div className="space-y-1">
-          <h2 className="section-title">Visual</h2>
-          <p className="text-sm text-muted">A cor vale para a página e para as viagens do clube.</p>
-        </div>
-        <div className="space-y-5">
-          <div className="grid gap-5 xl:grid-cols-2">
-            <ImageField
-              label="Logo"
-              hint="Quadrado, de preferência. JPG, PNG ou WebP."
-              name="page_logo_path"
-              kind="logo"
-              path={logo}
-              onChange={setLogo}
-              organizerId={organizerId}
-              error={errors.page_logo_path}
-            />
-            <ImageField
-              label="Capa"
-              hint="Foto horizontal do grupo na estrada."
-              name="page_cover_path"
-              kind="capa"
-              path={cover}
-              onChange={setCover}
-              organizerId={organizerId}
-              error={errors.page_cover_path}
-            />
-          </div>
-
-          <fieldset>
-            <legend className="field-label">Cor do clube</legend>
-            <input type="hidden" name="page_color" value={color} />
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {CLUB_COLOR_PRESETS.map((preset) => (
-                <button
-                  key={preset.hex}
-                  type="button"
-                  onClick={() => setColor(preset.hex)}
-                  aria-label={preset.label}
-                  aria-pressed={color === preset.hex}
-                  title={preset.label}
-                  className="h-9 w-9 rounded-full border border-line-strong ring-offset-2 ring-offset-surface aria-pressed:ring-2 aria-pressed:ring-ink"
-                  style={{ backgroundColor: preset.hex }}
-                />
-              ))}
-              <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-line px-3 text-sm">
+            <div className="grid gap-5 xl:grid-cols-2">
+              <div>
+                <label htmlFor="page_city" className="field-label">
+                  Cidade <span className="font-normal text-muted">(opcional)</span>
+                </label>
                 <input
-                  type="color"
-                  value={isHexColor(color) ? color : "#c2410c"}
-                  onChange={(e) => setColor(e.target.value.toLowerCase())}
-                  className="h-5 w-6 cursor-pointer border-0 bg-transparent p-0"
+                  {...field("page_city")}
+                  defaultValue={values.page_city}
+                  maxLength={60}
+                  placeholder="Ex.: Campinas, SP"
+                  className="field-input"
                 />
-                Outra cor
-              </label>
+                {message("page_city")}
+              </div>
+              <div>
+                <label htmlFor="page_instagram" className="field-label">
+                  Instagram <span className="font-normal text-muted">(opcional)</span>
+                </label>
+                <input
+                  {...field("page_instagram")}
+                  defaultValue={values.page_instagram}
+                  maxLength={60}
+                  placeholder="motoclubex"
+                  autoComplete="off"
+                  className="field-input"
+                />
+                {message("page_instagram")}
+              </div>
             </div>
-            {errors.page_color && (
-              <p className="field-error" role="alert">
-                {errors.page_color}
-              </p>
-            )}
-          </fieldset>
+            <label className="choice">
+              <input
+                type="checkbox"
+                name="page_show_whatsapp"
+                defaultChecked={values.page_show_whatsapp === "on"}
+                className="h-4 w-4 accent-brand"
+              />
+              Mostrar o botão &quot;Falar no WhatsApp&quot; (com o número do seu perfil)
+            </label>
+          </div>
+        </section>
 
-          <div className="club-theme space-y-2 rounded-xl border border-line p-4" style={clubThemeStyle(color)}>
-            <p className="text-xs text-muted">Prévia (ajustamos o tom para ficar legível no claro e no escuro)</p>
-            <div className="flex flex-wrap items-center gap-3">
-              {logo && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photoUrl(logo)} alt="" className="h-10 w-10 rounded-lg object-cover" />
+        <section className="card grid gap-5 p-4 sm:p-5 lg:grid-cols-[200px_minmax(0,1fr)]">
+          <div className="space-y-1">
+            <h2 className="section-title">Visual</h2>
+            <p className="text-sm text-muted">A cor vale para a página e para as viagens do clube.</p>
+          </div>
+          <div className="space-y-5">
+            <div className="grid gap-5 xl:grid-cols-2">
+              <ImageField
+                label="Logo"
+                hint="Quadrado, de preferência. JPG, PNG ou WebP."
+                name="page_logo_path"
+                kind="logo"
+                path={logo}
+                onChange={setLogo}
+                organizerId={organizerId}
+                error={errors.page_logo_path}
+              />
+              <ImageField
+                label="Capa"
+                hint="Foto horizontal do grupo na estrada."
+                name="page_cover_path"
+                kind="capa"
+                path={cover}
+                onChange={setCover}
+                organizerId={organizerId}
+                error={errors.page_cover_path}
+              />
+            </div>
+
+            <fieldset>
+              <legend className="field-label">Cor do clube</legend>
+              <input type="hidden" name="page_color" value={color} />
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {CLUB_COLOR_PRESETS.map((preset) => (
+                  <button
+                    key={preset.hex}
+                    type="button"
+                    onClick={() => setColor(preset.hex)}
+                    aria-label={preset.label}
+                    aria-pressed={color === preset.hex}
+                    title={preset.label}
+                    className="h-9 w-9 rounded-full border border-line-strong ring-offset-2 ring-offset-surface aria-pressed:ring-2 aria-pressed:ring-ink"
+                    style={{ backgroundColor: preset.hex }}
+                  />
+                ))}
+                <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-line px-3 text-sm">
+                  <input
+                    type="color"
+                    value={isHexColor(color) ? color : "#c2410c"}
+                    onChange={(e) => setColor(e.target.value.toLowerCase())}
+                    className="h-5 w-6 cursor-pointer border-0 bg-transparent p-0"
+                  />
+                  Outra cor
+                </label>
+              </div>
+              {errors.page_color && (
+                <p className="field-error" role="alert">
+                  {errors.page_color}
+                </p>
               )}
-              <span className="font-semibold">{name || "Seu clube"}</span>
-              <span className="btn-primary pointer-events-none w-auto">Quero ir</span>
-              <span className="text-sm font-medium text-accent">Ver viagem →</span>
+            </fieldset>
+
+            <div className="club-theme space-y-2 rounded-xl border border-line p-4" style={clubThemeStyle(color)}>
+              <p className="text-xs text-muted">Prévia (ajustamos o tom para ficar legível no claro e no escuro)</p>
+              <div className="flex flex-wrap items-center gap-3">
+                {logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photoUrl(logo)} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                )}
+                <span className="font-semibold">{name || "Seu clube"}</span>
+                <span className="btn-primary pointer-events-none w-auto">Quero ir</span>
+                <span className="text-sm font-medium text-accent">Ver viagem →</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <div className="flex justify-end">
-        <SubmitButton pendingText="Salvando…">Salvar página</SubmitButton>
-      </div>
+      </fieldset>
+
+      {editable && (
+        <div className="flex justify-end">
+          <SubmitButton name="intent" value="save" pendingText="Salvando…">
+            {live ? "Salvar alterações" : "Salvar e colocar no ar"}
+          </SubmitButton>
+        </div>
+      )}
     </form>
   );
 }

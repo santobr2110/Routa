@@ -20,6 +20,8 @@ export type ClubState = {
   values?: ClubValues;
   errors?: Partial<Record<ClubField | "form", string>>;
   saved?: boolean;
+  /** O que aconteceu no último envio: alterações salvas, página ligada ou desligada. */
+  notice?: "saved" | "on" | "off";
 };
 
 

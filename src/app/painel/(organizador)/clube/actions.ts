@@ -37,8 +37,29 @@ export async function saveClubPage(_prev: ClubState, formData: FormData): Promis
     CLUB_FIELDS.map((f) => [f, String(formData.get(f) ?? "")]),
   ) as ClubValues;
   const errors: ClubState["errors"] = {};
+  // "publish": liga e salva · "save": salva com a página no ar · "disable": só tira do ar.
+  const intent = String(formData.get("intent") ?? "save");
 
-  const enabled = values.page_enabled === "on";
+  if (intent === "disable") {
+    const supabase = await createClient();
+    const { data: current, error } = await supabase
+      .from("organizers")
+      .update({ page_enabled: false })
+      .eq("id", organizer.id)
+      .select("page_slug")
+      .single();
+    if (error) {
+      console.error("saveClubPage disable", error);
+      return { values, errors: { form: "Não deu para tirar do ar agora. Tenta de novo." } };
+    }
+    revalidatePath("/painel/clube");
+    if (current?.page_slug) revalidatePath(`/c/${current.page_slug}`);
+    // Nada é apagado: os dados ficam guardados para quando ligar de novo.
+    return { values: { ...values, page_enabled: "" }, saved: true, notice: "off" };
+  }
+
+  // Salvar sempre deixa a página no ar (com ela desligada, o formulário fica travado).
+  const wasLive = values.page_enabled === "on";
   const slug = values.page_slug.trim().toLowerCase();
   const name = values.page_name.trim();
   const bio = values.page_bio.trim();
@@ -51,9 +72,9 @@ export async function saveClubPage(_prev: ClubState, formData: FormData): Promis
 
   if (slug && !/^[a-z0-9](?:[a-z0-9-]{1,38})[a-z0-9]$/.test(slug)) errors.page_slug = ERRORS.page_slug;
   if (slug.includes("--")) errors.page_slug = ERRORS.page_slug;
-  if (enabled && !slug) errors.page_slug = "Escolhe o endereço da página para ligar.";
+  if (!slug) errors.page_slug = "Escolhe o endereço da página para ligar.";
   if (name && !z.string().min(2).max(60).safeParse(name).success) errors.page_name = ERRORS.page_name;
-  if (enabled && !name) errors.page_name = ERRORS.page_name;
+  if (!name) errors.page_name = ERRORS.page_name;
   if (bio.length > 800) errors.page_bio = ERRORS.page_bio;
   if (city.length > 60) errors.page_city = ERRORS.page_city;
   if (instagram && !/^[A-Za-z0-9._]{1,30}$/.test(instagram)) {
@@ -75,7 +96,7 @@ export async function saveClubPage(_prev: ClubState, formData: FormData): Promis
   const { error } = await supabase
     .from("organizers")
     .update({
-      page_enabled: enabled,
+      page_enabled: true,
       page_slug: slug || null,
       page_name: name || null,
       page_bio: bio || null,
@@ -108,5 +129,9 @@ export async function saveClubPage(_prev: ClubState, formData: FormData): Promis
 
   revalidatePath("/painel/clube");
   if (slug) revalidatePath(`/c/${slug}`);
-  return { values: { ...values, page_slug: slug, page_instagram: instagram }, saved: true };
+  return {
+    values: { ...values, page_enabled: "on", page_slug: slug, page_instagram: instagram },
+    saved: true,
+    notice: wasLive ? "saved" : "on",
+  };
 }
