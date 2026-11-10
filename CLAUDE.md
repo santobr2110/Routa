@@ -106,13 +106,13 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 
 - [x] Setup do projeto (Next.js 16 + Supabase + Tailwind 4): migration com tabelas, RLS, funções e storage, já aplicada no projeto Supabase de desenvolvimento
 - [x] Login do organizador (1ª versão, por link mágico; trocado por senha na sessão 2): cadastro de perfil (nome + WhatsApp) no 1º acesso, `/painel` protegido, sair. Testado de ponta a ponta com o Supabase real.
-- [ ] Templates de e-mail `token_hash` (README, passo 5): o Supabase não deixou editar sem SMTP próprio. Fazer junto com o SMTP no deploy.
+- [x] Templates de e-mail `token_hash` (README, passo 5): Confirm sign up e Reset password trocados depois de ligar o SMTP.
 - [x] Login com e-mail e senha: `/entrar`, `/cadastro`, `/esqueci-senha`, `/redefinir-senha`.
-  - [ ] Testar (a conta antiga não tem senha: criar com "Esqueci minha senha").
+  - [x] Testado em produção: "Esqueci minha senha" com o link aberto no celular.
   - [x] Trocar senha no `/painel/perfil` (senha atual + nova; confere a atual antes de gravar).
     - [ ] Testar com login (o Claude não tem a senha do dono).
 - [x] Produção: `https://routa-wine.vercel.app` (projeto recriado na Vercel). Supabase: Site URL = esse endereço; Redirect URLs = ele e `http://localhost:3000/**`. Integração Supabase↔Vercel desligada (ela sobrescrevia a Site URL). Vercel precisa de `NEXT_PUBLIC_SITE_URL` = endereço de produção.
-  - [ ] SMTP do Gmail pessoal no Supabase (provisório, até ter o domínio): tira o limite de poucos e-mails por hora e libera editar os templates.
+  - [x] SMTP do Gmail pessoal no Supabase (provisório). Quando tiver o domínio `routa.com.br`, trocar por Resend com remetente da Routa.
 - [ ] App autenticador opcional (TOTP) no perfil + tela do código no login + migration `0006` (RLS exige aal2 para quem ativou).
 - [x] Criar/editar viagem: `/painel/viagens/nova` e `/painel/viagens/[id]`, todos os campos, termo padrão editável, status (rascunho/publicada/encerrada), lista no `/painel`. Fotos: até 5, reduzidas no navegador e enviadas direto ao Storage; remover e escolher capa. Migration `0002` (policy de SELECT no storage, exigida pelo remove).
   - Testado pelo dono com o Supabase real (migration `0002` aplicada).
