@@ -4,7 +4,9 @@ import { requireOrganizer } from "@/lib/auth";
 import { slugify } from "@/lib/format";
 import { siteUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteSettings } from "@/lib/site-settings";
 import { ClubForm } from "./club-form";
+import { PanelImageSection } from "./panel-image-section";
 
 export const metadata: Metadata = { title: "Página do clube" };
 
@@ -19,6 +21,11 @@ export default async function ClubePage() {
     .eq("id", organizer.id)
     .single();
   if (error) throw error;
+  // Separado: se a 0015 ainda não foi aplicada, o resto da página continua funcionando.
+  const [{ data: panel, error: panelError }, site] = await Promise.all([
+    supabase.from("organizers").select("panel_image_path").eq("id", organizer.id).single(),
+    getSiteSettings(),
+  ]);
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -52,6 +59,14 @@ export default async function ClubePage() {
           page_cover_path: page.page_cover_path ?? "",
         }}
       />
+      {!panelError && (
+        <PanelImageSection
+          organizerId={organizer.id}
+          initial={panel?.panel_image_path ?? ""}
+          coverPath={page.page_cover_path}
+          sitePanelPath={site.panel_image_path}
+        />
+      )}
     </div>
   );
 }

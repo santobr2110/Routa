@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CockpitHero, roadGreeting } from "@/components/cockpit";
 import { requireOrganizer } from "@/lib/auth";
 import { daysUntil, sealState } from "@/lib/cadastur";
 import { loadOrganizerData } from "@/lib/organizer-data";
@@ -8,8 +7,9 @@ import { organizerOverview } from "@/lib/organizer-stats";
 import { parsePeriod } from "@/lib/periods";
 import { daysLeft } from "@/lib/trash";
 import { getDeletedTrips } from "@/lib/reauth";
+import { getSiteSettings, imageUrl } from "@/lib/site-settings";
 import { createClient } from "@/lib/supabase/server";
-import { OrganizerOverview } from "./overview";
+import { OrganizerHero, OrganizerOverview } from "./overview";
 
 export const metadata: Metadata = { title: "Painel" };
 
@@ -19,7 +19,7 @@ export default async function PainelPage({ searchParams }: PageProps<"/painel">)
   const period = parsePeriod((await searchParams).periodo);
 
   const supabase = await createClient();
-  const [{ trips, regs }, { data: seals }, deleted] = await Promise.all([
+  const [{ trips, regs }, { data: seals }, deleted, site, { data: own }] = await Promise.all([
     loadOrganizerData(),
     // Aviso do selo Cadastur vencendo ou vencido (sem pedido de renovação em análise).
     supabase
@@ -27,7 +27,11 @@ export default async function PainelPage({ searchParams }: PageProps<"/painel">)
       .select("status, valid_until")
       .in("status", ["approved", "pending"]),
     getDeletedTrips(),
+    getSiteSettings(),
+    // Foto do painel escolhida na Página do clube (0015). Se falhar, segue com a padrão.
+    supabase.from("organizers").select("panel_image_path").eq("id", organizer.id).maybeSingle(),
   ]);
+  const heroImage = imageUrl(own?.panel_image_path ?? site.panel_image_path);
   // Viagens que a administração excluiu (enquanto estão na lixeira).
   const removedByAdmin = deleted.filter((t) => t.deleted_by_admin);
   const latestSeal = (seals ?? [])
@@ -81,11 +85,10 @@ export default async function PainelPage({ searchParams }: PageProps<"/painel">)
   );
 
   if (trips.length === 0) {
-    const greet = roadGreeting();
     return (
       <div className="space-y-8">
         <h1 className="sr-only">Painel</h1>
-        <CockpitHero firstName={firstName} hello={greet.hello} phrase={greet.phrase} next={null} />
+        <OrganizerHero firstName={firstName} next={null} image={heroImage} />
         {alerts}
       </div>
     );
@@ -97,6 +100,7 @@ export default async function PainelPage({ searchParams }: PageProps<"/painel">)
       data={organizerOverview(trips, regs, period)}
       period={period}
       alerts={alerts}
+      heroImage={heroImage}
     />
   );
 }

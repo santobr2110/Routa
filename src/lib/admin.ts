@@ -210,6 +210,7 @@ export const ACTION_LABELS: Record<string, string> = {
   trip_undeleted: "Restaurou a viagem da lixeira",
   cadastur_approved: "Aprovou o selo Cadastur",
   cadastur_rejected: "Recusou o selo Cadastur",
+  site_settings_updated: "Mudou a aparência do site",
 };
 
 /** Porcentagem inteira (0 quando o total é 0). */

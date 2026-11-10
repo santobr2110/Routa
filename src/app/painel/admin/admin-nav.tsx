@@ -6,6 +6,7 @@ const LINKS = [
   { href: "/painel/admin/viagens", label: "Viagens" },
   { href: "/painel/admin/selos", label: "Selos" },
   { href: "/painel/admin/atividade", label: "Atividade" },
+  { href: "/painel/admin/aparencia", label: "Aparência" },
 ];
 
 export function AdminNav() {

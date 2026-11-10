@@ -26,6 +26,11 @@
   --accent: #c2410c; /* laranja para texto e links */
   --accent-strong: #9a3412;
   --brand-soft: #fff7ed;
+  /* Destaques sobre a foto (capa do painel e login), sempre fundo escuro nos dois modos.
+     A cor do site (Site Settings) troca estas também; veja siteThemeStyle. */
+  --hero-brand: #f97316;
+  --hero-on-brand: #ffffff;
+  --hero-accent: #fdba74;
   --danger: #b91c1c;
   --danger-soft: #fef2f2;
   --success: #166534;
@@ -74,6 +79,9 @@
   --color-brand-dark: var(--brand-dark);
   --color-on-brand: var(--on-brand);
   --color-brand-soft: var(--brand-soft);
+  --color-hero-brand: var(--hero-brand);
+  --color-hero-on-brand: var(--hero-on-brand);
+  --color-hero-accent: var(--hero-accent);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-page: var(--page);
@@ -185,10 +193,10 @@ body {
   @apply flex h-8 w-8 items-center justify-center rounded-md;
 }
 .convoy-seat[data-state="paid"] {
-  @apply bg-orange-500 text-white;
+  @apply bg-hero-brand text-hero-on-brand;
 }
 .convoy-seat[data-state="confirmed"] {
-  @apply bg-orange-500/15 text-orange-300 ring-1 ring-orange-400/70;
+  @apply bg-hero-brand/15 text-hero-accent ring-1 ring-hero-accent/70;
 }
 .convoy-seat[data-state="free"] {
   @apply bg-white/5 text-white/30 ring-1 ring-white/15;

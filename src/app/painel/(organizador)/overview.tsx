@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { BarList } from "@/components/charts/bar-list";
 import { TimeSeries } from "@/components/charts/time-series";
-import { CockpitHero, FuelCard, Gauge, Odometer, roadGreeting } from "@/components/cockpit";
-import { Kpi, Occupancy, PeriodPicker } from "@/components/stats";
+import { CockpitHero, FuelCard, Gauge, Odometer, heroButton, roadGreeting } from "@/components/cockpit";
+import { Kpi, PeriodPicker } from "@/components/stats";
+import { TripTable, tripBadges } from "@/components/trip-table";
 import { formatBRL, formatDateBR, formatDateRangeBR } from "@/lib/format";
 import type { OrganizerOverview as Overview } from "@/lib/organizer-stats";
 import { PERIODS, type PeriodKey } from "@/lib/periods";
-import { STATUS_LABELS } from "@/lib/trips";
 
 
 /** Visão geral do organizador: só as viagens e inscrições dele. */
@@ -15,7 +15,10 @@ export function OrganizerOverview({
   data: o,
   period,
   alerts,
+  heroImage,
 }: {
+  /** Foto da capa: a do clube, a padrão do admin ou vazio (foto da Routa). */
+  heroImage?: string;
   firstName: string;
   data: Overview;
   period: PeriodKey;
@@ -25,14 +28,13 @@ export function OrganizerOverview({
   const p = o.previous;
   const hasMoney = o.upcoming.some((u) => u.fixed) || t.value_cents > 0;
   const occupancy = o.now.seats > 0 ? Math.round((o.now.filled / o.now.seats) * 100) : null;
-  const greet = roadGreeting();
   // A próxima saída de verdade (publicada ou encerrada); se só houver rascunho, ele.
   const next = o.upcoming.find((u) => u.status !== "draft") ?? o.upcoming[0] ?? null;
 
   return (
     <div className="space-y-8">
       <h1 className="sr-only">Visão geral</h1>
-      <CockpitHero firstName={firstName} hello={greet.hello} phrase={greet.phrase} next={next} />
+      <OrganizerHero firstName={firstName} next={next} image={heroImage} />
 
       {alerts}
 
@@ -73,10 +75,14 @@ export function OrganizerOverview({
             hint={`${o.now.paid} de ${o.now.confirmed} confirmados já pagaram`}
           />
           <FuelCard
-            toReceive={o.now.to_receive_cents}
-            received={o.now.received_cents}
-            openTrips={o.now.open_trips}
-            waitlist={o.now.waitlist}
+            label="A receber"
+            value={formatBRL(o.now.to_receive_cents)}
+            sub={`${formatBRL(o.now.received_cents)} já entrou`}
+            pct={tankPct(o.now.received_cents, o.now.to_receive_cents)}
+            stats={[
+              { label: "Viagens abertas", value: o.now.open_trips },
+              { label: "Na fila", value: o.now.waitlist },
+            ]}
           />
           <Odometer
             label="Gente que já rodou com você"
@@ -206,114 +212,98 @@ export function OrganizerOverview({
   );
 }
 
-function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
-  const when = (days: number) =>
-    days > 1 ? `em ${days} dias` : days === 1 ? "amanhã" : days === 0 ? "hoje" : "em andamento";
+function tankPct(received: number, toReceive: number) {
+  const total = received + toReceive;
+  return total > 0 ? (received / total) * 100 : 0;
+}
+
+/** Capa do organizador: a próxima saída dele e os atalhos de quem organiza. */
+export function OrganizerHero({
+  firstName,
+  next,
+  image,
+}: {
+  image?: string;
+  firstName: string;
+  next: Overview["upcoming"][number] | null;
+}) {
+  const greet = roadGreeting();
+  const pending = next ? next.confirmed - next.paid : 0;
   return (
-    <>
-      <div className="card hidden overflow-x-auto md:block">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-line bg-surface-muted/50 text-muted">
-              <th className="px-4 py-2 font-medium">Viagem</th>
-              <th className="px-4 py-2 font-medium">Saída</th>
-              <th className="px-4 py-2 font-medium">Ocupação</th>
-              <th className="px-4 py-2 text-right font-medium">Fila</th>
-              <th className="px-4 py-2 text-right font-medium">Pagos</th>
-              <th className="px-4 py-2 text-right font-medium">A receber</th>
-              <th className="px-4 py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {trips.map((t) => (
-              <tr key={t.id} className="border-b border-line last:border-0 hover:bg-surface-muted/50">
-                <td className="px-4 py-2.5">
-                  <Link href={`/painel/viagens/${t.id}`} className="font-medium hover:text-accent">
-                    {t.title}
-                  </Link>
-                  <span className="block text-xs text-muted">
-                    {t.destination} · {STATUS_LABELS[t.status]}
-                    {t.hidden && " · fora do ar"}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5 whitespace-nowrap">
-                  {formatDateBR(t.start_date)}
-                  <span className="block text-xs text-muted">{when(t.days_left)}</span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <Occupancy confirmed={t.confirmed} capacity={t.capacity} />
-                </td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{t.waitlist}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">
-                  {t.paid}/{t.confirmed}
-                  {t.overdue > 0 && (
-                    <span className="block text-xs text-danger">{t.overdue} vencido(s)</span>
-                  )}
-                </td>
-                <td className="px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
-                  {t.paid < t.confirmed ? (
-                    <Link
-                      href={`/painel/viagens/${t.id}/cobranca`}
-                      className="font-medium text-accent hover:underline"
-                      title="Cobrar quem não pagou"
-                    >
-                      {t.fixed ? formatBRL(t.value_cents - t.paid_cents) : "rateio"} · cobrar
-                    </Link>
-                  ) : t.fixed ? (
-                    formatBRL(0)
-                  ) : (
-                    "rateio"
-                  )}
-                </td>
-                <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                  <Link
-                    href={`/painel/viagens/${t.id}/inscritos`}
-                    className="text-sm font-medium text-accent hover:underline"
-                  >
-                    Inscritos
-                  </Link>
-                  <span className="text-faint"> · </span>
-                  <Link
-                    href={`/painel/viagens/${t.id}/numeros`}
-                    className="text-sm font-medium text-accent hover:underline"
-                  >
-                    Números
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <ul className="grid gap-2 md:hidden">
-        {trips.map((t) => (
-          <li key={t.id}>
-            <Link href={`/painel/viagens/${t.id}/numeros`} className="card block space-y-2 p-4">
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="min-w-0 truncate font-medium">{t.title}</p>
-                <span className="shrink-0 text-xs text-muted">{when(t.days_left)}</span>
-              </div>
-              <p className="text-xs text-muted">
-                {formatDateRangeBR(t.start_date, t.end_date)} · {STATUS_LABELS[t.status]}
-              </p>
-              <Occupancy confirmed={t.confirmed} capacity={t.capacity} />
-              <p className="text-xs text-ink-soft">
-                {t.waitlist} na fila · {t.paid}/{t.confirmed} pagos
-                {t.overdue > 0 && ` · ${t.overdue} com prazo vencido`}
-                {t.fixed && ` · ${formatBRL(t.value_cents - t.paid_cents)} a receber`}
-              </p>
-            </Link>
-            {t.paid < t.confirmed && (
-              <Link
-                href={`/painel/viagens/${t.id}/cobranca`}
-                className="mt-1 inline-flex min-h-9 items-center px-1 text-sm font-medium text-accent"
-              >
-                Cobrar {t.confirmed - t.paid} pendente(s) →
+    <CockpitHero
+      image={image}
+      firstName={firstName}
+      hello={greet.hello}
+      phrase={greet.phrase}
+      next={
+        next && {
+          eyebrow: `Próxima saída${next.status === "draft" ? " · rascunho" : ""}`,
+          title: next.title,
+          href: `/painel/viagens/${next.id}`,
+          subtitle: `${next.destination} · ${formatDateRangeBR(next.start_date, next.end_date)}`,
+          days_left: next.days_left,
+          convoy: next,
+          actions: (
+            <>
+              <Link href={`/painel/viagens/${next.id}/inscritos`} className={heroButton.primary}>
+                Ver o comboio
               </Link>
-            )}
-          </li>
-        ))}
-      </ul>
-    </>
+              {pending > 0 && (
+                <Link href={`/painel/viagens/${next.id}/cobranca`} className={heroButton.glass}>
+                  Cobrar {pending} pendente{pending === 1 ? "" : "s"}
+                </Link>
+              )}
+              <Link href="/painel/viagens/nova" className={heroButton.ghost}>
+                + Nova viagem
+              </Link>
+            </>
+          ),
+        }
+      }
+      empty={
+        <>
+          <p className="max-w-md text-white/80">
+            Nenhuma saída marcada. A estrada está esperando: monta a próxima e manda o link pro
+            grupo.
+          </p>
+          <Link href="/painel/viagens/nova" className={heroButton.primary}>
+            + Criar viagem
+          </Link>
+        </>
+      }
+    />
+  );
+}
+
+function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
+  return (
+    <TripTable
+      label="Próximas saídas"
+      rows={trips.map((t) => {
+        const base = `/painel/viagens/${t.id}`;
+        return {
+          id: t.id,
+          href: base,
+          title: t.title,
+          destination: t.destination,
+          start_date: t.start_date,
+          end_date: t.end_date,
+          badges: tripBadges({ status: t.status, past: false, hidden: t.hidden }),
+          capacity: t.capacity,
+          confirmed: t.confirmed,
+          waitlist: t.waitlist,
+          paid: t.paid,
+          overdue: t.overdue,
+          fixed: t.fixed,
+          value_cents: t.value_cents,
+          paid_cents: t.paid_cents,
+          chargeHref: `${base}/cobranca`,
+          links: [
+            { href: `${base}/inscritos`, label: "Inscritos", icon: "people" },
+            { href: `${base}/numeros`, label: "Números", icon: "chart" },
+          ],
+        };
+      })}
+    />
   );
 }

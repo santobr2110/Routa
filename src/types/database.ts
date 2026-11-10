@@ -45,6 +45,8 @@ export type Database = {
           page_color: string | null;
           page_logo_path: string | null;
           page_cover_path: string | null;
+          /** Foto da capa do painel do organizador (migration 0015). */
+          panel_image_path: string | null;
         };
         Insert: {
           id: string;
@@ -67,6 +69,7 @@ export type Database = {
           page_color?: string | null;
           page_logo_path?: string | null;
           page_cover_path?: string | null;
+          panel_image_path?: string | null;
         };
         Relationships: [];
       };
@@ -290,6 +293,12 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      /** Aparência do site (migration 0015). */
+      get_site_settings: { Args: Record<string, never>; Returns: Json };
+      admin_update_site_settings: {
+        Args: { p_login_image_path: string; p_panel_image_path: string; p_brand_color: string };
+        Returns: Json;
+      };
       get_public_trip: {
         Args: { p_slug: string };
         Returns: Json;

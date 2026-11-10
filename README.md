@@ -103,6 +103,8 @@ A inscrição é aberta (sem login), então ela tem três proteções contra ins
    select cron.schedule('routa-lixeira', '0 5 * * *', $$select private.purge_deleted_trips()$$);
    ```
 
+8. **Aparência do site (migration `0015`):** cria o Site Settings (cor e fotos do login e do painel) e a foto do painel do organizador. Não precisa de nada além de rodar o arquivo. Antes de aplicar, o site segue com o visual padrão.
+
 
 ### 4. Instalar e rodar
 
@@ -128,6 +130,13 @@ on conflict do nothing;
 ```
 
 Para revisar: abra o certificado, confira na consulta pública do Cadastur (https://cadastur.turismo.gov.br/) se o CNPJ, o número e a validade batem, e clique em **Aprovar selo** ou **Recusar** (com motivo). O selo aparece nas viagens do organizador e some sozinho depois da data de validade.
+
+### 3.9. Aparência do site (admin) e foto do painel do clube
+
+- **Admin › Aparência** (`/painel/admin/aparencia`): cor principal do site (botões, links e destaques; o tom é ajustado para ficar legível nos dois modos), foto da tela de login e foto do painel. Tudo com prévia antes de salvar; **Salvar aparência** aplica no site inteiro na hora. "Voltar à padrão" e "Voltar ao laranja Routa" desfazem. Cada troca fica no log de auditoria.
+- Clubes com página ligada continuam com a cor deles nas páginas do clube e das viagens.
+- **Página do clube › Imagem do seu painel:** o organizador escolhe a foto da capa da própria visão geral (ou "Usar a capa do clube"). Salva na hora e vale mesmo com a página do clube desligada. Sem foto própria, usa a do admin; sem a do admin, a foto padrão da Routa.
+- **Tamanhos:** login 1920 × 1280 (mínimo 1600 px de largura); painel 1920 × 1080 (mínimo 1600 × 900); capa do clube 1920 × 640; logo 512 × 512. Fotos deitadas. A tela avisa quando a foto é vertical ou pequena, e o navegador reduz tudo para 1920 px antes de enviar.
 
 ### 3.8. Excluir viagem e lixeira
 

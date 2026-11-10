@@ -1,10 +1,20 @@
 import Link from "next/link";
 import { BarList } from "@/components/charts/bar-list";
 import { TimeSeries } from "@/components/charts/time-series";
+import {
+  CockpitHero,
+  FuelCard,
+  Gauge,
+  Odometer,
+  RoadSigns,
+  heroButton,
+  roadGreeting,
+} from "@/components/cockpit";
 import { Kpi, Occupancy, PeriodPicker, Snapshot } from "@/components/stats";
 import {
   PERIODS,
   percent,
+  type AdminTripRow,
   type Analytics,
   type Dashboard,
   type PeriodKey,
@@ -13,8 +23,10 @@ import {
   formatBRL,
   formatBrPhone,
   formatDateBR,
+  formatDateRangeBR,
   whatsappLink,
 } from "@/lib/format";
+import { daysBetween, todayBR } from "@/lib/organizer-stats";
 import { LEVEL_LABELS, STATUS_LABELS, TERRAIN_LABELS } from "@/lib/trips";
 import type { TripLevel, TripStatus, TripTerrain } from "@/types/database";
 
@@ -34,10 +46,17 @@ export function AdminOverview({
   dashboard: d,
   analytics: a,
   period,
+  firstName,
+  upcoming,
+  heroImage,
 }: {
+  heroImage?: string;
   dashboard: Dashboard;
   analytics: Analytics;
   period: PeriodKey;
+  firstName: string;
+  /** Viagens publicadas que ainda vão acontecer (no ar). */
+  upcoming: AdminTripRow[];
 }) {
   const t = a.totals;
   const p = a.previous;
@@ -58,18 +77,8 @@ export function AdminOverview({
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="page-title">Visão geral</h1>
-          <p className="text-sm text-muted">
-            {periodText} · comparado com os {PERIODS[period].label} anteriores
-          </p>
-        </div>
-        <PeriodPicker
-          current={period}
-          href={(key) => `/painel/admin?periodo=${key}`}
-        />
-      </div>
+      <h1 className="sr-only">Visão geral</h1>
+      <AdminHero firstName={firstName} upcoming={upcoming} image={heroImage} />
 
       {(d.seals.pending > 0 ||
         d.trips.hidden > 0 ||
@@ -100,7 +109,38 @@ export function AdminOverview({
       )}
 
       <section className="space-y-3">
-        <h2 className="section-title">No período</h2>
+        <div className="space-y-0.5">
+          <h2 className="section-title">Painel de instrumentos</h2>
+          <p className="text-sm text-muted">
+            Como estão as viagens que ainda vão acontecer em toda a Routa.
+          </p>
+        </div>
+        <Instruments dashboard={d} upcoming={upcoming} />
+        <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Snapshot label="Usuários" value={nf.format(d.users.total)} />
+          <Snapshot
+            label="Ativos (30 dias)"
+            value={nf.format(d.users.active_30d)}
+            hint={`${percent(d.users.active_30d, d.users.total)}% da base`}
+          />
+          <Snapshot label="Organizadores" value={nf.format(d.organizers.total)} />
+          <Snapshot label="Selos ativos" value={nf.format(d.seals.active)} />
+        </dl>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="space-y-0.5">
+            <h2 className="section-title">No período</h2>
+            <p className="text-sm text-muted">
+              {periodText} · comparado com os {PERIODS[period].label} anteriores
+            </p>
+          </div>
+          <PeriodPicker
+            current={period}
+            href={(key) => `/painel/admin?periodo=${key}`}
+          />
+        </div>
         <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <Kpi label="Novos usuários" value={t.signups} previous={p.signups} />
           <Kpi
@@ -137,35 +177,6 @@ export function AdminOverview({
             previous={p.paid_cents}
             money
           />
-        </dl>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="section-title">Agora</h2>
-        <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          <Snapshot label="Usuários" value={nf.format(d.users.total)} />
-          <Snapshot
-            label="Ativos (30 dias)"
-            value={nf.format(d.users.active_30d)}
-            hint={`${percent(d.users.active_30d, d.users.total)}% da base`}
-          />
-          <Snapshot
-            label="Viagens abertas"
-            value={nf.format(d.trips.upcoming_open)}
-          />
-          <Snapshot
-            label="Ocupação média"
-            value={
-              d.trips.avg_occupancy === null ? "—" : `${d.trips.avg_occupancy}%`
-            }
-            hint="das viagens abertas"
-          />
-          <Snapshot
-            label="Taxa de pagamento"
-            value={`${percent(d.registrations.paid, d.registrations.confirmed)}%`}
-            hint={`${d.registrations.paid} de ${d.registrations.confirmed}`}
-          />
-          <Snapshot label="Selos ativos" value={nf.format(d.seals.active)} />
         </dl>
       </section>
 
@@ -536,5 +547,144 @@ function Funnel({ funnel }: { funnel: Dashboard["funnel"] }) {
         })}
       </ol>
     </section>
+  );
+}
+
+/** Capa do admin: a próxima saída da plataforma inteira e as seguintes, como placas na estrada. */
+function AdminHero({
+  firstName,
+  upcoming,
+  image,
+}: {
+  image?: string;
+  firstName: string;
+  upcoming: AdminTripRow[];
+}) {
+  const greet = roadGreeting();
+  const today = todayBR();
+  const trips = [...upcoming].sort((x, y) =>
+    x.start_date.localeCompare(y.start_date),
+  );
+  const [next, ...rest] = trips;
+  const days = (t: AdminTripRow) => daysBetween(today, t.start_date);
+  return (
+    <CockpitHero
+      image={image}
+      firstName={firstName}
+      hello={greet.hello}
+      phrase={greet.phrase}
+      next={
+        next
+          ? {
+              eyebrow: "Próxima saída na Routa",
+              title: next.title,
+              href: `/painel/admin/viagens/${next.id}`,
+              subtitle: `${next.destination} · ${formatDateRangeBR(next.start_date, next.end_date)} · por ${next.organizer_name}`,
+              days_left: days(next),
+              convoy: next,
+              actions: (
+                <>
+                  <Link
+                    href={`/painel/admin/viagens/${next.id}`}
+                    className={heroButton.primary}
+                  >
+                    Ver a viagem
+                  </Link>
+                  <Link
+                    href={`/painel/admin/usuarios/${next.organizer_id}`}
+                    className={heroButton.glass}
+                  >
+                    Organizador
+                  </Link>
+                  <Link href="/painel/admin/viagens" className={heroButton.ghost}>
+                    Todas as próximas ({trips.length})
+                  </Link>
+                </>
+              ),
+            }
+          : null
+      }
+      empty={
+        <>
+          <p className="max-w-md text-white/80">
+            Nenhuma saída marcada na plataforma. Bom momento para chamar quem
+            parou no caminho.
+          </p>
+          <Link href="/painel/admin/usuarios" className={heroButton.primary}>
+            Ver usuários
+          </Link>
+        </>
+      }
+    >
+      {rest.length > 0 && (
+        <RoadSigns
+          title="Depois dela"
+          items={rest.slice(0, 4).map((t) => ({
+            id: t.id,
+            href: `/painel/admin/viagens/${t.id}`,
+            title: t.title,
+            detail: `${t.destination} · ${t.organizer_name}`,
+            days_left: days(t),
+            convoy: t,
+          }))}
+        />
+      )}
+    </CockpitHero>
+  );
+}
+
+/** Mostradores do admin: mesmos instrumentos do painel do organizador, somando a plataforma. */
+function Instruments({
+  dashboard: d,
+  upcoming,
+}: {
+  dashboard: Dashboard;
+  upcoming: AdminTripRow[];
+}) {
+  const seats = upcoming.reduce((s, t) => s + t.capacity, 0);
+  const filled = upcoming.reduce(
+    (s, t) => s + Math.min(t.confirmed, t.capacity),
+    0,
+  );
+  const confirmed = upcoming.reduce((s, t) => s + t.confirmed, 0);
+  const paid = upcoming.reduce((s, t) => s + t.paid, 0);
+  const waitlist = upcoming.reduce((s, t) => s + t.waitlist, 0);
+  const money = d.money;
+  return (
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 [&>*:nth-child(n+3)]:col-span-2 sm:[&>*:nth-child(n+3)]:col-span-1">
+      <Gauge
+        label="Vagas preenchidas"
+        value={seats > 0 ? filled / seats : null}
+        hint={
+          seats > 0
+            ? `${nf.format(filled)} de ${nf.format(seats)} nas viagens abertas`
+            : "nenhuma viagem aberta"
+        }
+      />
+      <Gauge
+        label="Pagamentos em dia"
+        value={confirmed > 0 ? paid / confirmed : null}
+        hint={`${nf.format(paid)} de ${nf.format(confirmed)} confirmados já pagaram`}
+      />
+      <FuelCard
+        label="Marcado como pago"
+        value={formatBRL(money.paid_cents)}
+        sub={`de ${formatBRL(money.confirmed_cents)} confirmados, desde o início`}
+        pct={
+          money.confirmed_cents > 0
+            ? (money.paid_cents / money.confirmed_cents) * 100
+            : 0
+        }
+        stats={[
+          { label: "Viagens abertas", value: nf.format(upcoming.length) },
+          { label: "Na fila", value: nf.format(waitlist) },
+        ]}
+      />
+      <Odometer
+        label="Inscrições na Routa"
+        value={d.registrations.total}
+        hint="desde o primeiro dia"
+      />
+    </div>
   );
 }

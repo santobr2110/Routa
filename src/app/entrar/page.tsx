@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import estrada from "@/assets/estrada-comboio.jpg";
+import { HeroPhoto } from "@/components/cockpit";
 import { CompassIcon } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getUser } from "@/lib/auth";
+import { getSiteSettings, imageUrl } from "@/lib/site-settings";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -14,17 +14,14 @@ export default async function LoginPage({ searchParams }: PageProps<"/entrar">) 
   if (await getUser()) redirect("/painel");
 
   const { erro } = await searchParams;
+  const site = await getSiteSettings();
 
   return (
     <main className="grid flex-1 lg:min-h-screen lg:grid-cols-[minmax(0,1.35fr)_minmax(420px,1fr)]">
       {/* A estrada: convite. No celular vira a capa do topo. */}
       <section className="relative isolate flex min-h-[46svh] flex-col justify-between overflow-hidden bg-[#0b1120] p-5 pb-12 text-white sm:p-8 sm:pb-14 lg:min-h-0 lg:p-12">
-        <Image
-          src={estrada}
-          alt=""
-          fill
-          priority
-          placeholder="blur"
+        <HeroPhoto
+          src={imageUrl(site.login_image_path)}
           sizes="(min-width: 1024px) 60vw, 100vw"
           className="login-hero-img -z-20 object-cover object-[62%_center]"
         />
@@ -44,12 +41,12 @@ export default async function LoginPage({ searchParams }: PageProps<"/entrar">) 
 
         <div className="max-w-xl space-y-4 pt-16 lg:pb-6">
           <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium tracking-wide text-white/85 uppercase ring-1 ring-white/15 backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-400" aria-hidden />
+            <span className="h-1.5 w-1.5 rounded-full bg-hero-accent" aria-hidden />
             Bora de cara pro vento?
           </p>
           <h1 className="text-[2rem] leading-[1.08] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
             Toda grande viagem começa com alguém{" "}
-            <span className="text-orange-300">chamando o grupo.</span>
+            <span className="text-hero-accent">chamando o grupo.</span>
           </h1>
           <p className="max-w-md text-base text-white/80 sm:text-lg">
             Esse alguém é você. A gente cuida das inscrições, do Pix e da fila. Você cuida da

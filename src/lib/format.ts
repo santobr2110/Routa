@@ -71,6 +71,25 @@ export function formatDateRangeBR(start: string, end: string): string {
   return start === end ? formatDateBR(start) : `${formatDateBR(start)} a ${formatDateBR(end)}`;
 }
 
+const MONTHS_SHORT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+/**
+ * Datas curtas para tabelas, sem quebrar linha: "12 dez", "12–14 dez", "28 nov – 2 dez".
+ * O ano só aparece quando não é o ano de `currentYear` ("12–14 jan 2027").
+ */
+export function formatShortRangeBR(start: string, end: string, currentYear: string): string {
+  const [sy, sm, sd] = start.slice(0, 10).split("-");
+  const [ey, em, ed] = end.slice(0, 10).split("-");
+  // Espaço que não quebra dentro de cada data; a linha só pode quebrar no " – ".
+  const nb = "\u00a0";
+  const month = (m: string) => MONTHS_SHORT[Number(m) - 1];
+  const year = ey !== currentYear ? `${nb}${ey}` : "";
+  if (start === end) return `${Number(sd)}${nb}${month(sm!)}${year}`;
+  if (sy === ey && sm === em) return `${Number(sd)}–${Number(ed)}${nb}${month(em!)}${year}`;
+  const startYear = sy !== ey ? `${nb}${sy}` : "";
+  return `${Number(sd)}${nb}${month(sm!)}${startYear} – ${Number(ed)}${nb}${month(em!)}${year}`;
+}
+
 /** Data e hora no horário de Brasília: "05/11/2026 14:32". */
 export function formatDateTimeBR(iso: string): string {
   return new Intl.DateTimeFormat("pt-BR", {

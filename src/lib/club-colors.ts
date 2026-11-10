@@ -100,3 +100,24 @@ export function clubThemeStyle(hex: string | null | undefined): React.CSSPropert
     "--club-soft-dark": toHex(mix(toRgb(DARK_SURFACE), color, 0.16)),
   } as React.CSSProperties;
 }
+
+/** Cor padrão da Routa (laranja). Sem cor no Site Settings, o site usa a do globals.css. */
+export const ROUTA_COLOR = "#c2410c";
+
+/**
+ * Cor do site inteiro (Site Settings): as mesmas variáveis do clube, mais os destaques que
+ * ficam sobre a foto escura (comboio, contagem, login). Vai no <body> com a classe club-theme;
+ * a página de um clube, por dentro, troca de novo pela cor do clube.
+ */
+export function siteThemeStyle(hex: string | null | undefined): React.CSSProperties | undefined {
+  const base = clubThemeStyle(hex);
+  if (!base || !hex) return undefined;
+  const color = toRgb(hex.toLowerCase());
+  const onPhoto = button(color, DARK_PAGE, WHITE);
+  return {
+    ...base,
+    "--hero-brand": onPhoto.bg,
+    "--hero-on-brand": onPhoto.on,
+    "--hero-accent": toHex(untilContrast(mix(color, WHITE, 0.35), DARK_PAGE, WHITE)),
+  } as React.CSSProperties;
+}

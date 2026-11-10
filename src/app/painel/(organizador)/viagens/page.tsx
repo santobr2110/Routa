@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CompassIcon } from "@/components/logo";
-import { Occupancy } from "@/components/stats";
+import { TripTable, tripBadges, type TripTableRow } from "@/components/trip-table";
 import { requireOrganizer } from "@/lib/auth";
-import { formatBRL, formatDateRangeBR } from "@/lib/format";
 import { loadOrganizerData } from "@/lib/organizer-data";
 import { todayBR } from "@/lib/organizer-stats";
-import { amountDue } from "@/lib/registrations";
+import { amountDue, isOverdue } from "@/lib/registrations";
 import { getDeletedTrips } from "@/lib/reauth";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, photoUrl } from "@/lib/trips";
@@ -47,6 +45,7 @@ export default async function ViagensPage({ searchParams }: PageProps<"/painel/v
       confirmed: confirmed.length,
       waitlist: tr.filter((r) => r.status === "waitlist").length,
       paid: paid.length,
+      overdue: confirmed.filter((r) => isOverdue(r)).length,
       value_cents: sum(confirmed),
       paid_cents: sum(paid),
       past: t.end_date < today,
@@ -100,110 +99,54 @@ export default async function ViagensPage({ searchParams }: PageProps<"/painel/v
           {trips.length === 0 ? "Você ainda não criou nenhuma viagem." : "Nenhuma viagem aqui."}
         </p>
       ) : (
-        <>
-          <div className="card hidden overflow-x-auto md:block">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-line bg-surface-muted/50 text-muted">
-                  <th className="px-4 py-2 font-medium">Viagem</th>
-                  <th className="px-4 py-2 font-medium">Datas</th>
-                  <th className="px-4 py-2 font-medium">Situação</th>
-                  <th className="px-4 py-2 font-medium">Ocupação</th>
-                  <th className="px-4 py-2 text-right font-medium">Fila</th>
-                  <th className="px-4 py-2 text-right font-medium">Pagos</th>
-                  <th className="px-4 py-2 text-right font-medium">Valor</th>
-                  <th className="px-4 py-2" />
-                </tr>
-              </thead>
-              <tbody>
-                {shown.map((t) => (
-                  <tr key={t.id} className="border-b border-line last:border-0 hover:bg-surface-muted/50">
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-3">
-                        <Cover path={covers.get(t.id)} className="h-10 w-10" />
-                        <div className="min-w-0">
-                          <Link href={`/painel/viagens/${t.id}`} className="font-medium hover:text-accent">
-                            {t.title}
-                          </Link>
-                          <span className="block text-xs text-muted">{t.destination}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 whitespace-nowrap">
-                      {formatDateRangeBR(t.start_date, t.end_date)}
-                    </td>
-                    <td className="px-4 py-2.5 whitespace-nowrap">
-                      {t.past && t.status !== "draft" ? "Realizada" : STATUS_LABELS[t.status]}
-                      {t.admin_hidden_at && (
-                        <span className="block text-xs text-danger">fora do ar</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <Occupancy confirmed={t.confirmed} capacity={t.capacity} />
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{t.waitlist}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">
-                      {t.paid}/{t.confirmed}
-                    </td>
-                    <td className="px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
-                      {t.pricing_mode === "fixed" ? formatBRL(t.value_cents) : "rateio"}
-                    </td>
-                    <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                      <Link
-                        href={`/painel/viagens/${t.id}/inscritos`}
-                        className="text-sm font-medium text-accent hover:underline"
-                      >
-                        Inscritos
-                      </Link>
-                      <span className="text-faint"> · </span>
-                      <Link
-                        href={`/painel/viagens/${t.id}/numeros`}
-                        className="text-sm font-medium text-accent hover:underline"
-                      >
-                        Números
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <ul className="grid gap-2 md:hidden">
-            {shown.map((t) => (
-              <li key={t.id}>
-                <Link
-                  href={`/painel/viagens/${t.id}`}
-                  className="card flex items-center gap-3 p-3 hover:border-line-hover"
-                >
-                  <Cover path={covers.get(t.id)} className="h-14 w-14" />
-                  <span className="min-w-0 flex-1 space-y-1">
-                    <span className="block truncate font-medium">{t.title}</span>
-                    <span className="block text-xs text-muted">
-                      {formatDateRangeBR(t.start_date, t.end_date)} ·{" "}
-                      {t.past && t.status !== "draft" ? "Realizada" : STATUS_LABELS[t.status]}
-                    </span>
-                    <Occupancy confirmed={t.confirmed} capacity={t.capacity} />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
+        <TripTable label="Suas viagens" rows={shown.map((t) => toRow(t, covers.get(t.id)))} />
       )}
     </div>
   );
 }
 
-function Cover({ path, className }: { path?: string; className: string }) {
-  return path ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={photoUrl(path)} alt="" className={`${className} shrink-0 rounded-lg object-cover`} />
-  ) : (
-    <span
-      className={`${className} flex shrink-0 items-center justify-center rounded-lg bg-surface-muted`}
-    >
-      <CompassIcon className="h-5 w-5 text-faint" />
-    </span>
-  );
+type Row = {
+  status: keyof typeof STATUS_LABELS;
+  past: boolean;
+  admin_hidden_at: string | null;
+  id: string;
+  title: string;
+  destination: string;
+  start_date: string;
+  end_date: string;
+  capacity: number;
+  confirmed: number;
+  waitlist: number;
+  paid: number;
+  overdue: number;
+  pricing_mode: string;
+  value_cents: number;
+  paid_cents: number;
+};
+
+function toRow(t: Row, cover: string | undefined): TripTableRow {
+  const base = `/painel/viagens/${t.id}`;
+  return {
+    id: t.id,
+    href: base,
+    title: t.title,
+    destination: t.destination,
+    cover: cover ? photoUrl(cover) : null,
+    start_date: t.start_date,
+    end_date: t.end_date,
+    badges: tripBadges({ status: t.status, past: t.past, hidden: !!t.admin_hidden_at }),
+    capacity: t.capacity,
+    confirmed: t.confirmed,
+    waitlist: t.waitlist,
+    paid: t.paid,
+    overdue: t.past ? 0 : t.overdue,
+    fixed: t.pricing_mode === "fixed",
+    value_cents: t.value_cents,
+    paid_cents: t.paid_cents,
+    chargeHref: t.past ? undefined : `${base}/cobranca`,
+    links: [
+      { href: `${base}/inscritos`, label: "Inscritos", icon: "people" },
+      { href: `${base}/numeros`, label: "Números", icon: "chart" },
+    ],
+  };
 }

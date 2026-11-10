@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
-import { CLUB_COLOR_PRESETS, clubThemeStyle, isHexColor } from "@/lib/club-colors";
+import { ColorPicker } from "@/components/color-picker";
+import { ROUTA_COLOR, clubThemeStyle } from "@/lib/club-colors";
 import type { ClubField, ClubState, ClubValues } from "@/lib/club";
 import { resizeToJpeg } from "@/lib/resize-image";
 import { createClient } from "@/lib/supabase/client";
@@ -29,7 +30,7 @@ export function ClubForm({
   const values = state.values ?? initial;
   const errors = state.errors ?? {};
   const [slug, setSlug] = useState(values.page_slug);
-  const [color, setColor] = useState(values.page_color || CLUB_COLOR_PRESETS[0]!.hex);
+  const [color, setColor] = useState(values.page_color || ROUTA_COLOR);
   const [logo, setLogo] = useState(values.page_logo_path);
   const [cover, setCover] = useState(values.page_cover_path);
   const [name, setName] = useState(values.page_name);
@@ -237,7 +238,7 @@ export function ClubForm({
             <div className="grid gap-5 xl:grid-cols-2">
               <ImageField
                 label="Logo"
-                hint="Quadrado, de preferência. JPG, PNG ou WebP."
+                hint="Quadrado, ideal 512 × 512 px (mínimo 256 × 256). JPG, PNG ou WebP."
                 name="page_logo_path"
                 kind="logo"
                 path={logo}
@@ -247,7 +248,7 @@ export function ClubForm({
               />
               <ImageField
                 label="Capa"
-                hint="Foto horizontal do grupo na estrada."
+                hint="Faixa larga (4:1 no computador, 3:1 no celular): ideal 1920 × 640 px, mínimo 1200 × 400. Deixe o principal no centro: as pontas de cima e de baixo são cortadas."
                 name="page_cover_path"
                 kind="capa"
                 path={cover}
@@ -260,29 +261,7 @@ export function ClubForm({
             <fieldset>
               <legend className="field-label">Cor do clube</legend>
               <input type="hidden" name="page_color" value={color} />
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {CLUB_COLOR_PRESETS.map((preset) => (
-                  <button
-                    key={preset.hex}
-                    type="button"
-                    onClick={() => setColor(preset.hex)}
-                    aria-label={preset.label}
-                    aria-pressed={color === preset.hex}
-                    title={preset.label}
-                    className="h-9 w-9 rounded-full border border-line-strong ring-offset-2 ring-offset-surface aria-pressed:ring-2 aria-pressed:ring-ink"
-                    style={{ backgroundColor: preset.hex }}
-                  />
-                ))}
-                <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-line px-3 text-sm">
-                  <input
-                    type="color"
-                    value={isHexColor(color) ? color : "#c2410c"}
-                    onChange={(e) => setColor(e.target.value.toLowerCase())}
-                    className="h-5 w-6 cursor-pointer border-0 bg-transparent p-0"
-                  />
-                  Outra cor
-                </label>
-              </div>
+              <ColorPicker value={color} onChange={setColor} />
               {errors.page_color && (
                 <p className="field-error" role="alert">
                   {errors.page_color}

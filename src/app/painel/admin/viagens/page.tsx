@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ADMIN_PAGE_SIZE, requireAdmin, type AdminTripRow } from "@/lib/admin";
-import { formatDateRangeBR } from "@/lib/format";
-import { STATUS_LABELS } from "@/lib/trips";
-import { Badge } from "../stat";
+import { TripTable, tripBadges } from "@/components/trip-table";
+import { todayBR } from "@/lib/organizer-stats";
 
 export const metadata: Metadata = {
   title: "Admin · Viagens",
@@ -56,6 +55,7 @@ export default async function AdminViagensPage({
     rows: AdminTripRow[];
   };
   const pages = Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE));
+  const today = todayBR();
 
   const href = (changes: Record<string, string>) => {
     const params = new URLSearchParams({
@@ -111,140 +111,36 @@ export default async function AdminViagensPage({
           Nenhuma viagem com esses filtros.
         </p>
       ) : (
-        <>
-          <div className="card hidden overflow-x-auto md:block">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-line bg-surface-muted/50 text-muted">
-                  <th className="px-4 py-2 font-medium">Viagem</th>
-                  <th className="px-4 py-2 font-medium">Datas</th>
-                  <th className="px-4 py-2 font-medium">Organizador</th>
-                  <th className="px-4 py-2 font-medium">Situação</th>
-                  <th className="px-4 py-2 font-medium">Ocupação</th>
-                  <th className="px-4 py-2 text-right font-medium">Fila</th>
-                  <th className="px-4 py-2 text-right font-medium">Pagos</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((t) => {
-                  const pct =
-                    t.capacity > 0
-                      ? Math.min((t.confirmed / t.capacity) * 100, 100)
-                      : 0;
-                  return (
-                    <tr
-                      key={t.id}
-                      className="border-b border-line last:border-0 hover:bg-surface-muted/50"
-                    >
-                      <td className="px-4 py-2.5">
-                        <Link
-                          href={`/painel/admin/viagens/${t.id}`}
-                          className="font-medium hover:text-accent"
-                        >
-                          {t.title}
-                        </Link>
-                        <span className="block text-xs text-muted">
-                          {t.destination}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        {formatDateRangeBR(t.start_date, t.end_date)}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        {t.organizer_name}
-                        {t.organizer_suspended_at && (
-                          <span className="ml-1.5">
-                            <Badge tone="danger">Suspenso</Badge>
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <div className="flex flex-wrap gap-1">
-                          <Badge
-                            tone={
-                              t.status === "published" ? "success" : "muted"
-                            }
-                          >
-                            {STATUS_LABELS[t.status]}
-                          </Badge>
-                          {t.admin_hidden_at && (
-                            <Badge tone="danger">Fora do ar</Badge>
-                          )}
-                          {t.deleted_at && (
-                            <Badge tone="danger">
-                              {t.deleted_by_admin ? "Excluída (admin)" : "Na lixeira"}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <div className="flex min-w-28 items-center gap-2">
-                          <div className="h-1.5 flex-1 rounded-full bg-surface-muted">
-                            <div
-                              className="h-1.5 rounded-full bg-series-1"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-muted tabular-nums">
-                            {t.confirmed}/{t.capacity}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">
-                        {t.waitlist}
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">
-                        {t.pricing_mode === "fixed"
-                          ? `${t.paid}/${t.confirmed}`
-                          : "—"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <ul className="space-y-2 md:hidden">
-            {rows.map((t) => (
-              <li key={t.id}>
-                <Link
-                  href={`/painel/admin/viagens/${t.id}`}
-                  className="card block space-y-1 p-4 hover:border-line-hover"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium break-words">{t.title}</p>
-                    <Badge
-                      tone={t.status === "published" ? "success" : "muted"}
-                    >
-                      {STATUS_LABELS[t.status]}
-                    </Badge>
-                    {t.admin_hidden_at && (
-                      <Badge tone="danger">Fora do ar</Badge>
-                    )}
-                    {t.deleted_at && (
-                      <Badge tone="danger">
-                        {t.deleted_by_admin ? "Excluída (admin)" : "Na lixeira"}
-                      </Badge>
-                    )}
-                    {t.organizer_suspended_at && (
-                      <Badge tone="danger">Organizador suspenso</Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted">
-                    {t.destination} ·{" "}
-                    {formatDateRangeBR(t.start_date, t.end_date)} · por{" "}
-                    {t.organizer_name}
-                  </p>
-                  <p className="text-sm text-ink-soft">
-                    {t.confirmed}/{t.capacity} confirmados
-                    {t.waitlist > 0 && ` · ${t.waitlist} na fila`}
-                    {t.pricing_mode === "fixed" && ` · ${t.paid} pagos`}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
+        <TripTable
+          label="Viagens"
+          rows={rows.map((t) => ({
+            id: t.id,
+            href: `/painel/admin/viagens/${t.id}`,
+            title: t.title,
+            destination: t.destination,
+            organizer: {
+              name: t.organizer_name,
+              suspended: !!t.organizer_suspended_at,
+            },
+            start_date: t.start_date,
+            end_date: t.end_date,
+            badges: tripBadges({
+              status: t.status,
+              past: t.end_date < today,
+              hidden: !!t.admin_hidden_at,
+              deleted: t.deleted_at
+                ? t.deleted_by_admin
+                  ? "admin"
+                  : "organizer"
+                : null,
+            }),
+            capacity: t.capacity,
+            confirmed: t.confirmed,
+            waitlist: t.waitlist,
+            paid: t.paid,
+            fixed: t.pricing_mode === "fixed",
+          }))}
+        />
       )}
 
       {pages > 1 && (
