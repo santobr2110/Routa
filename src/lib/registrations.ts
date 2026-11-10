@@ -13,7 +13,7 @@ export function amountDue(trip: Trip, hasPillion: boolean): number | null {
 
 /** Colunas lidas na lista de inscritos e no CSV. */
 export const REGISTRATION_COLUMNS =
-  "id, name, whatsapp, email, bike, bike_brand, bike_model, bike_year, bike_color, bike_plate, has_pillion, pillion_name, emergency_name, emergency_phone, payment_status, status, created_at, queued_at, payment_due_at, promoted_at, released_at" as const;
+  "id, name, whatsapp, email, bike, bike_brand, bike_model, bike_year, bike_color, bike_plate, has_pillion, pillion_name, emergency_name, emergency_phone, payment_status, status, created_at, queued_at, payment_due_at, promoted_at, released_at, access_token" as const;
 
 /** Prazo de pagamento vencido (e ainda pendente). */
 export function isOverdue(r: { status: string; payment_status: string; payment_due_at: string | null }, now = Date.now()): boolean {

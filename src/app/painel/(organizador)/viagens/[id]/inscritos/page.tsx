@@ -5,6 +5,7 @@ import { requireOrganizer } from "@/lib/auth";
 import { describeBike, formatPlate } from "@/lib/bikes";
 import { formatBRL, formatBrPhone, formatDateTimeBR, formatDueBR, whatsappLink } from "@/lib/format";
 import { pixPayload, pixTxid } from "@/lib/pix";
+import { registrationUrl } from "@/lib/site";
 import { REGISTRATION_COLUMNS, amountDue, changedRecently, isOverdue } from "@/lib/registrations";
 import { createClient } from "@/lib/supabase/server";
 import { cancelRegistration, releaseRegistration } from "./actions";
@@ -106,16 +107,17 @@ export default async function InscritosPage({
         ? `Pix copia e cola (é só colar no app do banco):\n\n${pixCode(r.id, due)}\n\nMe manda o comprovante por aqui.`
         : `Minha chave Pix: ${trip.pix_key}. Me manda o comprovante por aqui.`,
       cardText(r.has_pillion),
+      `\n\nSua página da inscrição (pagamento, avisos e informações): ${registrationUrl(r.access_token)}`,
     ]
       .filter(Boolean)
       .join(" ");
   };
 
-  const releasedMessage = (r: { name: string }) =>
-    `Oi, ${r.name.split(" ")[0]}! Aqui é ${organizer.name.split(" ")[0]}, da viagem ${trip.title}. O prazo para pagar a sua vaga venceu e ela foi para quem estava na lista de espera. Você continua na lista: se abrir vaga de novo, eu te aviso. Se quiser conversar, é só responder aqui.`;
+  const releasedMessage = (r: { name: string; access_token: string }) =>
+    `Oi, ${r.name.split(" ")[0]}! Aqui é ${organizer.name.split(" ")[0]}, da viagem ${trip.title}. O prazo para pagar a sua vaga venceu e ela foi para quem estava na lista de espera. Você continua na lista: se abrir vaga de novo, eu te aviso. Se quiser conversar, é só responder aqui.\n\nSua página da inscrição: ${registrationUrl(r.access_token)}`;
 
-  const greeting = (name: string) =>
-    `Oi, ${name.split(" ")[0]}! Aqui é ${organizer.name.split(" ")[0]}, da viagem ${trip.title}.`;
+  const greeting = (r: { name: string; access_token: string }) =>
+    `Oi, ${r.name.split(" ")[0]}! Aqui é ${organizer.name.split(" ")[0]}, da viagem ${trip.title}.\n\nSua página da inscrição: ${registrationUrl(r.access_token)}`;
 
   return (
     <div className="space-y-6">
@@ -313,7 +315,7 @@ export default async function InscritosPage({
                   )}
                   <div className="grid gap-2 sm:grid-cols-2">
                     <PaymentToggle tripId={trip.id} registrationId={r.id} status={r.payment_status} />
-                    <WhatsAppButton phone={r.whatsapp} text={greeting(r.name)} />
+                    <WhatsAppButton phone={r.whatsapp} text={greeting(r)} />
                   </div>
                   <Details r={r} />
                   <form action={cancelRegistration.bind(null, trip.id, r.id)}>
@@ -352,7 +354,7 @@ export default async function InscritosPage({
                     </p>
                   )}
                 </div>
-                <WhatsAppButton phone={r.whatsapp} text={greeting(r.name)} />
+                <WhatsAppButton phone={r.whatsapp} text={greeting(r)} />
                 <Details r={r} />
                 <form action={cancelRegistration.bind(null, trip.id, r.id)}>
                   <RemoveButton name={r.name} />

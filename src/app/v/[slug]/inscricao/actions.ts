@@ -3,8 +3,11 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { canonicalBrand, maxBikeYear, normalizePlate } from "@/lib/bikes";
-import { normalizeBrPhone } from "@/lib/format";
+import { emailEnabled, registrationEmail, sendEmail } from "@/lib/email";
+import { formatDateRangeBR, normalizeBrPhone } from "@/lib/format";
+import { getPublicTrip } from "@/lib/public-trip";
 import { clientIp, hashIp, signRegistration, verifyTurnstile } from "@/lib/registration-guard";
+import { registrationUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import type { PricingMode } from "@/types/database";
 
@@ -39,6 +42,8 @@ export type RegisterResult = {
   card?: { url: string; amount_cents: number | null } | null;
   /** Prazo para pagar (migration 0011), só para confirmados em viagem com prazo. */
   payment_due_at?: string | null;
+  /** Token do link pessoal /i/{token} (migration 0013). */
+  access_token?: string | null;
 };
 
 export type RegisterState = {
@@ -190,5 +195,22 @@ export async function registerForTrip(
     return fail({ form: "Não deu para enviar agora. Tenta de novo em instantes." });
   }
 
-  return { result: data as RegisterResult, values, attempt };
+  const result = data as RegisterResult;
+  // E-mail com o link da página do inscrito (só se o serviço de e-mail estiver configurado).
+  if (result.access_token && emailEnabled()) {
+    const trip = await getPublicTrip(slug);
+    if (trip) {
+      const message = registrationEmail({
+        name: name.data!,
+        tripTitle: trip.title,
+        dates: formatDateRangeBR(trip.start_date, trip.end_date),
+        organizerName: result.organizer_name,
+        status: result.status,
+        link: registrationUrl(result.access_token),
+      });
+      await sendEmail({ to: email.data!, ...message });
+    }
+  }
+
+  return { result, values, attempt };
 }

@@ -40,6 +40,13 @@ export default function PrivacidadePage() {
             lista de espera) e avisar alguém numa emergência.
           </p>
           <p>
+            <strong>Sua página da inscrição:</strong> cada inscrição tem um link pessoal e
+            secreto, onde você vê a sua vaga, o pagamento, as informações da viagem e os avisos do
+            organizador. Quem tiver o link vê esses dados, então guarde e não compartilhe. Se o
+            envio por e-mail estiver ligado, mandamos esse link para o e-mail que você informou
+            (pelo serviço Resend).
+          </p>
+          <p>
             <strong>Proteção contra robôs:</strong> o formulário usa o Cloudflare Turnstile para
             confirmar que é uma pessoa se inscrevendo. Para limitar inscrições em massa, guardamos
             por até 1 dia um código embaralhado (hash) gerado a partir do endereço de internet

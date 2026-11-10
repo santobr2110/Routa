@@ -29,6 +29,8 @@ export type CenterPerson = {
   /** Prazo para pagar (ISO) e se já venceu. */
   dueAt: string | null;
   overdue: boolean;
+  /** Link da página do inscrito (/i/{token}). */
+  link: string;
 };
 
 type TemplateKey = "cobrar" | "vespera" | "aviso";
@@ -65,6 +67,8 @@ function defaultText(key: TemplateKey, trip: CenterTrip): string {
       "",
       ...(trip.acceptsCard ? ["Prefere cartão de crédito? {cartao}", ""] : []),
       "Se já pagou, me manda o comprovante que eu marco aqui. Valeu! 🏍️",
+      "",
+      "Sua página da inscrição: {link}",
     ].join("\n");
   if (key === "vespera")
     return [
@@ -72,8 +76,10 @@ function defaultText(key: TemplateKey, trip: CenterTrip): string {
       `Saída: ${trip.departurePoint}${trip.departureTime ? `, às ${trip.departureTime.slice(0, 5)}` : ""}.`,
       ...(trip.departureUrl ? [`Mapa: ${trip.departureUrl}`] : []),
       "Tanque cheio, documentos em dia e capa de chuva na mala. Bora de cara pro vento!",
+      "",
+      "Tudo da viagem na sua página: {link}",
     ].join("\n");
-  return `Oi, {nome}! Aqui é ${me}, da viagem ${trip.title}. `;
+  return `Oi, {nome}! Aqui é ${me}, da viagem ${trip.title}. \n\nTudo da viagem na sua página da inscrição: {link}`;
 }
 
 const STORAGE = "routa:enviados";
@@ -164,6 +170,7 @@ export function MessageCenter({
       .replaceAll("{nome}", p.name.split(" ")[0] ?? p.name)
       .replaceAll("{valor}", amount ? ` (${formatBRL(amount)})` : "")
       .replaceAll("{pix}", pix)
+      .replaceAll("{link}", p.link)
       .replaceAll(
         "{prazo}",
         p.dueAt ? (p.overdue ? ` (o prazo era ${formatDueBR(p.dueAt)})` : `, até ${formatDueBR(p.dueAt)}`) : "",
@@ -247,7 +254,7 @@ export function MessageCenter({
             className="field-input font-[inherit]"
           />
           <p className="field-hint">
-            {"{nome}"} vira o primeiro nome de cada pessoa
+            {"{nome}"} vira o primeiro nome de cada pessoa, {"{link}"} o link da página dela
             {template === "cobrar" &&
               `, {valor} o valor dela, {prazo} o prazo dela, {pix} o Pix copia e cola com o valor certo${trip.acceptsCard ? ", {cartao} o link do cartão com o valor no cartão" : ""}`}
             .{" "}

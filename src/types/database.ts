@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0012).
+// Escrito à mão a partir de supabase/migrations/ (até a 0013).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -160,6 +160,12 @@ export type Database = {
           },
         ];
       };
+      trip_updates: {
+        Row: { id: string; trip_id: string; body: string; created_at: string };
+        Insert: { id?: string; trip_id: string; body: string; created_at?: string };
+        Update: never;
+        Relationships: [];
+      };
       trip_photos: {
         Row: {
           id: string;
@@ -222,6 +228,8 @@ export type Database = {
           /** Quando subiu da lista de espera / perdeu a vaga por prazo. */
           promoted_at: string | null;
           released_at: string | null;
+          /** Token do link pessoal /i/{token} (migration 0013). */
+          access_token: string;
         };
         // Inscrição só pela função register_for_trip.
         Insert: never;
@@ -279,6 +287,10 @@ export type Database = {
     Functions: {
       get_public_trip: {
         Args: { p_slug: string };
+        Returns: Json;
+      };
+      get_registration_page: {
+        Args: { p_token: string };
         Returns: Json;
       };
       get_club_page: {

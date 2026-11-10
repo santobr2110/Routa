@@ -123,6 +123,13 @@ on conflict do nothing;
 
 Para revisar: abra o certificado, confira na consulta pública do Cadastur (https://cadastur.turismo.gov.br/) se o CNPJ, o número e a validade batem, e clique em **Aprovar selo** ou **Recusar** (com motivo). O selo aparece nas viagens do organizador e some sozinho depois da data de validade.
 
+### 3.7. Página do inscrito, mural e e-mail
+
+- Cada inscrição tem um **link pessoal** (`/i/...`), sem login: a pessoa vê a vaga (ou a posição na fila), o pagamento (Pix com QR, cartão, prazo), os avisos do organizador e as informações da viagem. Quem tem o link vê a inscrição; por isso o link não aparece no Google. Precisa da migration `0013`.
+- O link chega pela tela de vaga garantida ("Mandar para mim no WhatsApp"), pelas mensagens do organizador (cobrança, véspera, avisos e vaga aberta levam o link de cada um) e por e-mail, se configurado.
+- **Mural da viagem:** na aba **Cobrança e avisos**, o organizador publica avisos que aparecem na página de cada inscrito.
+- **E-mail automático (opcional):** crie uma conta no [Resend](https://resend.com), verifique um domínio seu (ex.: routa.com.br) e coloque na Vercel (**Settings → Environment Variables**) `RESEND_API_KEY` (a chave do Resend) e `EMAIL_FROM` (ex.: `Routa <inscricoes@routa.com.br>`). Depois, faça um novo deploy. Sem essas variáveis, nada é enviado e o resto funciona normal.
+
 ### 3.6. Página do clube
 
 Em **Página do clube** (menu do painel), o organizador monta uma página pública em `/c/nome-do-clube` com logo, capa, descrição, cidade, Instagram, botão de WhatsApp (opcional) e a cor do clube. A página mostra as próximas viagens, as viagens já realizadas e os números (viagens, viajantes, quem voltou). As viagens do clube passam a mostrar "Organizado por {clube}" e usam a cor escolhida (a Routa ajusta o tom para ficar legível no modo claro e no escuro). Precisa da migration `0012`.
