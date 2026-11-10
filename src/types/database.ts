@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0011).
+// Escrito à mão a partir de supabase/migrations/ (até a 0012).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -34,6 +34,17 @@ export type Database = {
           /** Suspenso pela administração (migration 0008). Só o admin altera. */
           suspended_at: string | null;
           suspended_reason: string | null;
+          /** Página do clube (migration 0012). */
+          page_enabled: boolean;
+          page_slug: string | null;
+          page_name: string | null;
+          page_bio: string | null;
+          page_city: string | null;
+          page_instagram: string | null;
+          page_show_whatsapp: boolean;
+          page_color: string | null;
+          page_logo_path: string | null;
+          page_cover_path: string | null;
         };
         Insert: {
           id: string;
@@ -46,6 +57,16 @@ export type Database = {
           name?: string;
           whatsapp?: string;
           created_at?: string;
+          page_enabled?: boolean;
+          page_slug?: string | null;
+          page_name?: string | null;
+          page_bio?: string | null;
+          page_city?: string | null;
+          page_instagram?: string | null;
+          page_show_whatsapp?: boolean;
+          page_color?: string | null;
+          page_logo_path?: string | null;
+          page_cover_path?: string | null;
         };
         Relationships: [];
       };
@@ -257,6 +278,10 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       get_public_trip: {
+        Args: { p_slug: string };
+        Returns: Json;
+      };
+      get_club_page: {
         Args: { p_slug: string };
         Returns: Json;
       };

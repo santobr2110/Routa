@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CompassIcon, Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { deadlineText, formatBRL, formatDateBR, formatDateRangeBR, formatDateTimeBR } from "@/lib/format";
+import { clubThemeStyle } from "@/lib/club-colors";
 import type { PublicTrip } from "@/lib/public-trip";
 import { LEVEL_LABELS, TERRAIN_LABELS, photoUrl } from "@/lib/trips";
 
@@ -30,7 +31,10 @@ export function TripView({ trip }: { trip: PublicTrip }) {
   );
 
   return (
-    <div className="flex flex-1 flex-col pb-28 lg:pb-16">
+    <div
+      className={`flex flex-1 flex-col pb-28 lg:pb-16 ${trip.club?.color ? "club-theme" : ""}`}
+      style={clubThemeStyle(trip.club?.color)}
+    >
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/" aria-label="Routa, página inicial" className="inline-block">
           <Logo />
@@ -160,7 +164,26 @@ function Summary({ trip }: { trip: PublicTrip }) {
       </div>
       <div className="space-y-1.5 p-4">
         <p className="text-xs font-medium tracking-wide text-muted uppercase">Organização</p>
-        <p className="font-medium">{trip.organizer_name}</p>
+        {trip.club ? (
+          <Link href={`/c/${trip.club.slug}`} className="group flex items-center gap-3">
+            {trip.club.logo_path && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={photoUrl(trip.club.logo_path)}
+                alt=""
+                className="h-10 w-10 shrink-0 rounded-lg object-cover"
+              />
+            )}
+            <span>
+              <span className="block font-medium group-hover:text-accent">{trip.club.name}</span>
+              <span className="block text-xs text-muted">
+                por {trip.organizer_name} · ver o clube →
+              </span>
+            </span>
+          </Link>
+        ) : (
+          <p className="font-medium">{trip.organizer_name}</p>
+        )}
         {trip.organizer_cadastur && (
           <>
             <span
@@ -218,7 +241,7 @@ function Photos({ trip }: { trip: PublicTrip }) {
   if (trip.photos.length === 0) {
     return (
       <div className="flex aspect-[2/1] items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand-dark">
-        <CompassIcon className="h-16 w-16 text-white/90" />
+        <CompassIcon className="h-16 w-16 text-on-brand/90" />
       </div>
     );
   }

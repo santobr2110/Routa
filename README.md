@@ -123,6 +123,10 @@ on conflict do nothing;
 
 Para revisar: abra o certificado, confira na consulta pública do Cadastur (https://cadastur.turismo.gov.br/) se o CNPJ, o número e a validade batem, e clique em **Aprovar selo** ou **Recusar** (com motivo). O selo aparece nas viagens do organizador e some sozinho depois da data de validade.
 
+### 3.6. Página do clube
+
+Em **Página do clube** (menu do painel), o organizador monta uma página pública em `/c/nome-do-clube` com logo, capa, descrição, cidade, Instagram, botão de WhatsApp (opcional) e a cor do clube. A página mostra as próximas viagens, as viagens já realizadas e os números (viagens, viajantes, quem voltou). As viagens do clube passam a mostrar "Organizado por {clube}" e usam a cor escolhida (a Routa ajusta o tom para ficar legível no modo claro e no escuro). Precisa da migration `0012`.
+
 ### 3.4. Painel do organizador
 
 Todo organizador tem, em `/painel`, um menu com:

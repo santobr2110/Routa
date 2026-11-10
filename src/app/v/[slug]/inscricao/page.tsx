@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { clubThemeStyle } from "@/lib/club-colors";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Logo } from "@/components/logo";
@@ -25,7 +26,10 @@ export default async function InscricaoPage({ params }: PageProps<"/v/[slug]/ins
   const dates = formatDateRangeBR(trip.start_date, trip.end_date);
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div
+      className={`flex flex-1 flex-col ${trip.club?.color ? "club-theme" : ""}`}
+      style={clubThemeStyle(trip.club?.color)}
+    >
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/" aria-label="Routa, página inicial">
           <Logo />

@@ -4,6 +4,7 @@ const LINKS = [
   { href: "/painel", label: "Visão geral", exact: true },
   { href: "/painel/viagens", label: "Viagens" },
   { href: "/painel/participantes", label: "Participantes" },
+  { href: "/painel/clube", label: "Página do clube" },
   { href: "/painel/perfil", label: "Perfil" },
 ];
 

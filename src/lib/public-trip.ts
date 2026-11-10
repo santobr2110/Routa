@@ -29,6 +29,8 @@ export type PublicTrip = {
   card_pillion_price_cents?: number | null;
   /** Prazo para pagar depois de garantir a vaga, em horas (migration 0011). */
   payment_deadline_hours?: number | null;
+  /** Página do clube do organizador, se estiver no ar (migration 0012). */
+  club?: { slug: string; name: string; logo_path: string | null; color: string | null } | null;
   /** A inscrição pede a placa da moto (migration 0006). */
   requires_plate: boolean;
   level: TripLevel;

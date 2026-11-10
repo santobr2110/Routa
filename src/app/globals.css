@@ -19,6 +19,10 @@
   --ink-soft: #44403c;
   --muted: #57534e;
   --faint: #a8a29e;
+  /* Cor dos botões (o clube pode trocar; veja .club-theme). */
+  --brand: #c2410c;
+  --brand-dark: #9a3412;
+  --on-brand: #ffffff;
   --accent: #c2410c; /* laranja para texto e links */
   --accent-strong: #9a3412;
   --brand-soft: #fff7ed;
@@ -66,8 +70,9 @@
 
 @theme inline {
   /* Laranja de pôr do sol na estrada: fundo dos botões, contraste AA com texto branco. */
-  --color-brand: #c2410c;
-  --color-brand-dark: #9a3412;
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-on-brand: var(--on-brand);
   --color-brand-soft: var(--brand-soft);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
@@ -94,6 +99,27 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/*
+ * Cor do clube (página do clube e viagens do clube). As variáveis --club-* vêm calculadas
+ * do app (src/lib/club-colors.ts) com contraste AA garantido nos dois modos.
+ */
+.club-theme {
+  --brand: var(--club-brand-light);
+  --brand-dark: var(--club-brand-hover-light);
+  --on-brand: var(--club-on-brand-light);
+  --accent: var(--club-accent-light);
+  --accent-strong: var(--club-accent-light);
+  --brand-soft: var(--club-soft-light);
+}
+.dark .club-theme {
+  --brand: var(--club-brand-dark-mode);
+  --brand-dark: var(--club-brand-hover-dark-mode);
+  --on-brand: var(--club-on-brand-dark-mode);
+  --accent: var(--club-accent-dark);
+  --accent-strong: var(--club-accent-dark);
+  --brand-soft: var(--club-soft-dark);
+}
+
 body {
   background: var(--page);
   color: var(--ink);
@@ -105,7 +131,7 @@ body {
  */
 @layer components {
   .btn-primary {
-    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-center text-[15px] leading-snug font-medium text-white shadow-sm transition-colors hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-10 sm:w-auto sm:text-sm;
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-center text-[15px] leading-snug font-medium text-on-brand shadow-sm transition-colors hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-10 sm:w-auto sm:text-sm;
   }
   .btn-secondary {
     @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-center text-[15px] leading-snug font-medium text-ink transition-colors hover:border-line-hover hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 sm:min-h-10 sm:w-auto sm:text-sm;

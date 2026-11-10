@@ -2,31 +2,11 @@
 
 import { useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { resizeToJpeg } from "@/lib/resize-image";
 import { MAX_PHOTOS, PHOTOS_BUCKET, photoUrl } from "@/lib/trips";
 import { addPhoto, removePhoto, setCoverPhoto } from "./actions";
 
 type Photo = { id: string; storage_path: string; position: number };
-
-const MAX_SIDE = 1600; // px no lado maior
-const JPEG_QUALITY = 0.82;
-
-/** Reduz a foto no navegador (economiza o 4G de quem está na estrada) e converte para JPEG. */
-async function resizeToJpeg(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-  const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  return new Promise((resolve, reject) =>
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("toBlob falhou"))),
-      "image/jpeg",
-      JPEG_QUALITY,
-    ),
-  );
-}
 
 export function PhotoManager({
   tripId,
@@ -102,7 +82,7 @@ export function PhotoManager({
                   className="h-full w-full object-cover"
                 />
                 {i === 0 && (
-                  <span className="absolute top-2 left-2 rounded-full bg-brand px-2 py-0.5 text-sm font-semibold text-white">
+                  <span className="absolute top-2 left-2 rounded-full bg-brand px-2 py-0.5 text-sm font-semibold text-on-brand">
                     Capa
                   </span>
                 )}
