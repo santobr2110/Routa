@@ -197,7 +197,7 @@ function CnpjCheck({ lookup }: { lookup: CnpjLookup | null }) {
   if (lookup.status === "unavailable") {
     return (
       <p className="rounded-xl bg-warn-soft px-4 py-3 text-warn">
-        ⚠️ Não deu para consultar a Receita agora. Confira o CNPJ manualmente.
+        ⚠️ Nenhum serviço de consulta da Receita respondeu agora. Recarregue a página em alguns minutos ou confira o CNPJ manualmente.
       </p>
     );
   }
@@ -210,7 +210,9 @@ function CnpjCheck({ lookup }: { lookup: CnpjLookup | null }) {
   }
   return (
     <div className="space-y-1 rounded-xl bg-surface-muted px-4 py-3">
-      <p className="font-semibold">Receita Federal</p>
+      <p className="font-semibold">
+        Receita Federal <span className="font-normal text-muted">(via {lookup.source})</span>
+      </p>
       <p>
         {lookup.active ? "✅" : "❌"} Situação: {lookup.situation}
       </p>
