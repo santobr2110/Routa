@@ -140,11 +140,13 @@ function Summary({ trip }: { trip: PublicTrip }) {
                 {formatBRL(trip.pillion_price_cents)} piloto + garupa
               </p>
             )}
+            <p className="pt-1 text-sm text-muted">{paymentText(trip)}</p>
           </>
         ) : (
           <>
             <p className="text-lg font-semibold">A definir</p>
             <p className="text-sm text-muted">Rateio entre o grupo: o organizador passa o valor.</p>
+            <p className="pt-1 text-sm text-muted">{paymentText(trip)}</p>
           </>
         )}
       </div>
@@ -270,4 +272,24 @@ function Chip({ children }: { children: React.ReactNode }) {
   return (
     <li className="rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink-soft">{children}</li>
   );
+}
+
+/** "Pix" ou "Pix ou cartão", com o valor no cartão quando for diferente. */
+function paymentText(trip: PublicTrip): string {
+  if (!trip.accepts_card) return "Pagamento por Pix.";
+  const solo =
+    trip.card_price_cents && trip.price_cents !== null && trip.card_price_cents !== trip.price_cents
+      ? trip.card_price_cents
+      : null;
+  const duo =
+    trip.card_pillion_price_cents &&
+    trip.pillion_price_cents !== null &&
+    trip.card_pillion_price_cents !== trip.pillion_price_cents
+      ? trip.card_pillion_price_cents
+      : null;
+  if (!solo && !duo) return "Pix ou cartão de crédito.";
+  const parts = [solo && `${formatBRL(solo)} piloto`, duo && `${formatBRL(duo)} com garupa`].filter(
+    Boolean,
+  );
+  return `Pix ou cartão de crédito (no cartão: ${parts.join(", ")}).`;
 }

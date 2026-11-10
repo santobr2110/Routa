@@ -131,6 +131,7 @@ Dentro de cada viagem há as abas **Editar**, **Inscritos** e **Números**.
 
 - Quem garante a vaga vê um **QR Code Pix** e o botão **Copiar Pix copia e cola**, já com o valor exato (no rateio, sem valor). O dinheiro vai direto para a chave do organizador; a Routa só monta o código (padrão do Banco Central) e não cobra taxa.
 - No formulário da viagem, a chave Pix mostra como foi entendida (CPF, CNPJ, celular, e-mail ou aleatória). Para celular que também parece CPF, escreva com **+55**.
+- **Cartão de crédito (opcional, migration `0010`):** a Routa não processa cartão. Em **Pagamento**, marque "Aceitar cartão de crédito" e cole o link de pagamento criado na sua conta (Mercado Pago, InfinitePay, PagBank…): um para piloto e, se aceita garupa, outro para a dupla. Pode colocar um valor maior no cartão para repassar a taxa. O link só aparece para quem garantiu a vaga.
 - Em cada viagem, a aba **Cobrança e avisos** monta as mensagens de WhatsApp: cobrar quem não pagou (com o Pix de cada um), lembrete da véspera e aviso ao grupo, uma pessoa por clique. Quando o Pix cair, marque como pago na aba **Inscritos**.
 
 ### 3.3. Área de administração

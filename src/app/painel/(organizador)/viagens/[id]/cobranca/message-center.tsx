@@ -14,6 +14,7 @@ export type CenterTrip = {
   departurePoint: string;
   departureUrl: string | null;
   departureTime: string | null;
+  acceptsCard: boolean;
 };
 
 export type CenterPerson = {
@@ -23,6 +24,8 @@ export type CenterPerson = {
   status: "confirmed" | "waitlist";
   paid: boolean;
   amountCents: number | null;
+  /** Link de cartão desta pessoa (piloto ou dupla) e o valor no cartão, se aceita cartão. */
+  card: { url: string; amountCents: number | null } | null;
 };
 
 type TemplateKey = "cobrar" | "vespera" | "aviso";
@@ -57,6 +60,7 @@ function defaultText(key: TemplateKey, trip: CenterTrip): string {
       "",
       "{pix}",
       "",
+      ...(trip.acceptsCard ? ["Prefere cartão de crédito? {cartao}", ""] : []),
       "Se já pagou, me manda o comprovante que eu marco aqui. Valeu! 🏍️",
     ].join("\n");
   if (key === "vespera")
@@ -156,7 +160,13 @@ export function MessageCenter({
     return texts[template]
       .replaceAll("{nome}", p.name.split(" ")[0] ?? p.name)
       .replaceAll("{valor}", amount ? ` (${formatBRL(amount)})` : "")
-      .replaceAll("{pix}", pix);
+      .replaceAll("{pix}", pix)
+      .replaceAll(
+        "{cartao}",
+        p.card
+          ? `${p.card.amountCents ? `${formatBRL(p.card.amountCents)} por este link: ` : "É por este link: "}${p.card.url}`
+          : "",
+      );
   }
 
   function markSent(p: CenterPerson) {
@@ -231,7 +241,8 @@ export function MessageCenter({
           />
           <p className="field-hint">
             {"{nome}"} vira o primeiro nome de cada pessoa
-            {template === "cobrar" && ", {valor} o valor dela e {pix} o Pix copia e cola com o valor certo"}
+            {template === "cobrar" &&
+              `, {valor} o valor dela e {pix} o Pix copia e cola com o valor certo${trip.acceptsCard ? ", {cartao} o link do cartão com o valor no cartão" : ""}`}
             .{" "}
             <button
               type="button"

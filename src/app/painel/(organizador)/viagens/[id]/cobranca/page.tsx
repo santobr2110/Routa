@@ -18,7 +18,7 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
   const { data: trip } = await supabase
     .from("trips")
     .select(
-      "id, title, status, start_date, end_date, destination, pricing_mode, price_cents, pillion_price_cents, pix_key, departure_point, departure_point_url, departure_time",
+      "id, title, status, start_date, end_date, destination, pricing_mode, price_cents, pillion_price_cents, pix_key, departure_point, departure_point_url, departure_time, card_enabled, card_url, card_pillion_url, card_price_cents, card_pillion_price_cents",
     )
     .eq("id", id)
     .maybeSingle();
@@ -32,6 +32,19 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
     .order("created_at");
   if (error) throw error;
 
+  // Mesmo critério da inscrição (register_for_trip): dupla usa o link e o valor da dupla.
+  const cardFor = (hasPillion: boolean): CenterPerson["card"] => {
+    if (!trip.card_enabled || !trip.card_url) return null;
+    const fixed = trip.pricing_mode === "fixed";
+    return {
+      url: hasPillion ? (trip.card_pillion_url ?? trip.card_url) : trip.card_url,
+      amountCents: !fixed
+        ? null
+        : hasPillion
+          ? (trip.card_pillion_price_cents ?? trip.pillion_price_cents)
+          : (trip.card_price_cents ?? trip.price_cents),
+    };
+  };
   const people: CenterPerson[] = regs.map((r) => ({
     id: r.id,
     name: r.name,
@@ -39,6 +52,7 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
     status: r.status as CenterPerson["status"],
     paid: r.payment_status === "paid",
     amountCents: amountDue(trip, r.has_pillion),
+    card: cardFor(r.has_pillion),
   }));
   const pending = people.filter((p) => p.status === "confirmed" && !p.paid);
   const pendingCents = pending.reduce((s, p) => s + (p.amountCents ?? 0), 0);
@@ -66,6 +80,7 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
           departurePoint: trip.departure_point,
           departureUrl: trip.departure_point_url,
           departureTime: trip.departure_time,
+          acceptsCard: trip.card_enabled && !!trip.card_url,
         }}
         people={people}
       />

@@ -26,6 +26,12 @@ const HINTS: Partial<Record<TripField, string>> = {
   pillion_price:
     "Valor fechado da dupla. Deixa vazio se a viagem não aceita garupa.",
   terrain_percent: "Ex.: 80 = 80% da viagem nesse terreno.",
+  card_url:
+    "Crie no app do seu banco ou maquininha (Mercado Pago, InfinitePay, PagBank…) um link de pagamento com o valor no cartão e cole aqui.",
+  card_pillion_url:
+    "Só se aceita garupa: outro link, com o valor da dupla.",
+  card_price: "Vazio = mesmo valor do Pix. Se quiser repassar a taxa do cartão, coloque o valor maior.",
+  card_pillion_price: "Vazio = mesmo valor do Pix.",
   terms_text:
     "Já vem com um texto padrão. Ajuste do jeito que fizer sentido pro seu grupo. O inscrito precisa aceitar para se inscrever.",
 };
@@ -64,6 +70,7 @@ export function TripForm({
   const values = state.values ?? initial;
   const errors = state.errors ?? {};
   const [pricingMode, setPricingMode] = useState(values.pricing_mode);
+  const [cardEnabled, setCardEnabled] = useState(values.card_enabled === "on");
 
   /** Props de acessibilidade e erro comuns a todos os campos. */
   const field = (name: TripField) => ({
@@ -314,6 +321,75 @@ export function TripForm({
           field={field("pix_key")}
           error={message("pix_key")}
         />
+
+        <div className="space-y-4">
+          <div>
+            <label className="choice">
+              <input
+                type="checkbox"
+                name="card_enabled"
+                checked={cardEnabled}
+                onChange={(e) => setCardEnabled(e.target.checked)}
+                className="h-4 w-4 accent-brand"
+              />
+              Aceitar cartão de crédito (pelo seu link de pagamento)
+            </label>
+            <p className="mt-1 text-sm text-muted">
+              A Routa não processa cartão: o dinheiro e a taxa ficam entre você e a empresa do
+              link. O link só aparece para quem garantiu a vaga, ao lado do Pix.
+            </p>
+          </div>
+          {cardEnabled && (
+            <div className="grid gap-5 rounded-xl border border-line p-4 xl:grid-cols-2">
+              <div className={pricingMode === "fixed" ? "" : "xl:col-span-2"}>
+                <label htmlFor="card_url" className="field-label">
+                  {pricingMode === "fixed" ? "Link de pagamento (piloto)" : "Link de pagamento"}
+                </label>
+                <input
+                  {...field("card_url")}
+                  type="url"
+                  inputMode="url"
+                  placeholder="https://"
+                  maxLength={500}
+                  className="field-input"
+                />
+                {message("card_url")}
+              </div>
+              {pricingMode === "fixed" && (
+                <>
+                  <MoneyField
+                    name="card_price"
+                    label="Valor piloto no cartão"
+                    optional
+                    field={field}
+                    message={message}
+                  />
+                  <div>
+                    <label htmlFor="card_pillion_url" className="field-label">
+                      Link de pagamento (piloto + garupa)
+                    </label>
+                    <input
+                      {...field("card_pillion_url")}
+                      type="url"
+                      inputMode="url"
+                      placeholder="https://"
+                      maxLength={500}
+                      className="field-input"
+                    />
+                    {message("card_pillion_url")}
+                  </div>
+                  <MoneyField
+                    name="card_pillion_price"
+                    label="Valor piloto + garupa no cartão"
+                    optional
+                    field={field}
+                    message={message}
+                  />
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </Section>
 
       <Section title="Termo de responsabilidade">
@@ -499,7 +575,7 @@ function MoneyField({
   field,
   message,
 }: {
-  name: "price" | "pillion_price";
+  name: "price" | "pillion_price" | "card_price" | "card_pillion_price";
   label: string;
   optional?: boolean;
   field: FieldProps;

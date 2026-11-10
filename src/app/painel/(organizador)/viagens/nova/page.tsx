@@ -29,6 +29,11 @@ const EMPTY: TripFormValues = {
   capacity: "10",
   requires_plate: "",
   pix_key: "",
+  card_enabled: "",
+  card_url: "",
+  card_pillion_url: "",
+  card_price: "",
+  card_pillion_price: "",
   terms_text: DEFAULT_TERMS,
 };
 

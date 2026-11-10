@@ -35,6 +35,8 @@ export type RegisterResult = {
   organizer_name: string;
   pix_key: string | null;
   organizer_whatsapp: string | null;
+  /** Link de pagamento com cartão do organizador (migration 0010), só para confirmados. */
+  card?: { url: string; amount_cents: number | null } | null;
 };
 
 export type RegisterState = {

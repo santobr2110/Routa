@@ -49,6 +49,13 @@ const ERRORS: Record<TripField, string> = {
   requires_plate: "Valor inválido.",
   pix_key:
     "Não reconhecemos essa chave Pix. Use CPF, CNPJ, celular com DDD, e-mail ou a chave aleatória.",
+  card_enabled: "Valor inválido.",
+  card_url: "Cola o link de pagamento com cartão (começa com https://).",
+  card_pillion_url:
+    "Cola o link de pagamento de piloto + garupa (começa com https://). O valor da dupla é outro.",
+  card_price: "Coloca o valor no cartão, ex.: 470 ou 1.250,00 (igual ou maior que o do Pix), ou deixa vazio.",
+  card_pillion_price:
+    "Coloca o valor da dupla no cartão (igual ou maior que o do Pix), ou deixa vazio.",
   terms_text: "O termo precisa ter pelo menos algumas linhas.",
 };
 
@@ -114,6 +121,37 @@ function parseTrip(formData: FormData) {
   );
   const terms_text = check("terms_text", z.string().trim().min(20).max(10000), values.terms_text);
 
+  // Cartão: link de pagamento do próprio organizador. Quem leva garupa paga outro valor,
+  // então, no valor fixo com garupa, a dupla precisa de um link próprio.
+  const card_enabled = values.card_enabled === "on";
+  const cardUrl = z.url({ protocol: /^https$/ }).max(500);
+  let card_url: string | null = null;
+  let card_pillion_url: string | null = null;
+  let card_price_cents: number | null = null;
+  let card_pillion_price_cents: number | null = null;
+  if (card_enabled) {
+    card_url = check("card_url", cardUrl, values.card_url.trim()) ?? null;
+    const fixedWithPillion = pricing_mode === "fixed" && accepts_pillion;
+    if (fixedWithPillion) {
+      card_pillion_url = check("card_pillion_url", cardUrl, values.card_pillion_url.trim()) ?? null;
+    }
+    if (pricing_mode === "fixed" && values.card_price.trim()) {
+      card_price_cents = parseBRL(values.card_price);
+      if (card_price_cents === null || (price_cents !== null && card_price_cents < price_cents)) {
+        errors.card_price = ERRORS.card_price;
+      }
+    }
+    if (fixedWithPillion && values.card_pillion_price.trim()) {
+      card_pillion_price_cents = parseBRL(values.card_pillion_price);
+      if (
+        card_pillion_price_cents === null ||
+        (pillion_price_cents !== null && card_pillion_price_cents < pillion_price_cents)
+      ) {
+        errors.card_pillion_price = ERRORS.card_pillion_price;
+      }
+    }
+  }
+
   if (Object.keys(errors).length > 0) return { values, errors } as const;
 
   const data = {
@@ -138,6 +176,11 @@ function parseTrip(formData: FormData) {
     capacity: capacity!,
     requires_plate,
     pix_key: pix_key!,
+    card_enabled,
+    card_url,
+    card_pillion_url,
+    card_price_cents,
+    card_pillion_price_cents,
     terms_text: terms_text!,
   } satisfies Omit<TripInsert, "organizer_id" | "slug">;
 

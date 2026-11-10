@@ -63,6 +63,12 @@ export default async function EditarViagemPage({
     capacity: String(trip.capacity),
     requires_plate: trip.requires_plate ? "on" : "",
     pix_key: trip.pix_key,
+    card_enabled: trip.card_enabled ? "on" : "",
+    card_url: trip.card_url ?? "",
+    card_pillion_url: trip.card_pillion_url ?? "",
+    card_price: trip.card_price_cents === null ? "" : centsToInput(trip.card_price_cents),
+    card_pillion_price:
+      trip.card_pillion_price_cents === null ? "" : centsToInput(trip.card_pillion_price_cents),
     terms_text: trip.terms_text,
   };
 

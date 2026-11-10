@@ -67,7 +67,8 @@ export function RegistrationDone({
           Vaga garantida, {firstName}! 🏍️
         </h2>
         <p className="text-base text-ink-soft">
-          Agora é só pagar o Pix e mandar o comprovante pro organizador.
+          Agora é só pagar {result.card ? "(Pix ou cartão)" : "o Pix"} e mandar o comprovante pro
+          organizador.
         </p>
       </div>
 
@@ -124,6 +125,28 @@ export function RegistrationDone({
         </div>
       </div>
 
+      {result.card && (
+        <div className="card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-0.5">
+            <p className="font-medium">Prefere cartão de crédito?</p>
+            <p className="text-sm text-muted">
+              {result.card.amount_cents !== null
+                ? `${formatBRL(result.card.amount_cents)} no cartão`
+                : "Valor combinado com o organizador"}
+              , pela página de pagamento {cardProvider(result.card.url)}.
+            </p>
+          </div>
+          <a
+            href={result.card.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary shrink-0"
+          >
+            Pagar no cartão
+          </a>
+        </div>
+      )}
+
       {result.organizer_whatsapp && (
         <a
           href={whatsappLink(result.organizer_whatsapp, message)}
@@ -151,4 +174,24 @@ function BackLink({ slug }: { slug: string }) {
       ← Voltar para a viagem
     </Link>
   );
+}
+
+/** Nome da empresa do link, para a pessoa saber para onde vai. */
+function cardProvider(url: string): string {
+  let host = "";
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return "do organizador";
+  }
+  const known: [RegExp, string][] = [
+    [/(^|\.)(mpago\.la|mpago\.li|mercadopago\.com(\.br)?)$/, "do Mercado Pago"],
+    [/(^|\.)infinitepay\.io$/, "da InfinitePay"],
+    [/(^|\.)(pagseguro\.uol\.com\.br|pagseguro\.com\.br|pagbank\.com\.br)$/, "do PagBank"],
+    [/(^|\.)(sumup\.com|sumupstore\.com)$/, "da SumUp"],
+    [/(^|\.)stone\.com\.br$/, "da Stone"],
+    [/(^|\.)(asaas\.com)$/, "do Asaas"],
+    [/(^|\.)(nubank\.com\.br)$/, "do Nubank"],
+  ];
+  return known.find(([re]) => re.test(host))?.[1] ?? `(${host})`;
 }

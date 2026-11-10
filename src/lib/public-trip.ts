@@ -22,6 +22,11 @@ export type PublicTrip = {
   price_cents: number | null;
   accepts_pillion: boolean;
   pillion_price_cents: number | null; // total piloto + garupa
+  /** Aceita cartão pelo link do organizador (migration 0010). O link não vem aqui. */
+  accepts_card?: boolean;
+  /** Valor no cartão (já com o padrão = valor do Pix); null se não aceita ou no rateio. */
+  card_price_cents?: number | null;
+  card_pillion_price_cents?: number | null;
   /** A inscrição pede a placa da moto (migration 0006). */
   requires_plate: boolean;
   level: TripLevel;

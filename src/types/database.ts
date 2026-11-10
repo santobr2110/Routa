@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0009).
+// Escrito à mão a partir de supabase/migrations/ (até a 0010).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -69,6 +69,11 @@ export type Database = {
           price_cents: number | null;
           accepts_pillion: boolean;
           pillion_price_cents: number | null;
+          card_enabled: boolean;
+          card_url: string | null;
+          card_pillion_url: string | null;
+          card_price_cents: number | null;
+          card_pillion_price_cents: number | null;
           requires_plate: boolean;
           level: TripLevel;
           terrain: TripTerrain;
@@ -102,6 +107,11 @@ export type Database = {
           price_cents?: number | null;
           accepts_pillion?: boolean;
           pillion_price_cents?: number | null;
+          card_enabled?: boolean;
+          card_url?: string | null;
+          card_pillion_url?: string | null;
+          card_price_cents?: number | null;
+          card_pillion_price_cents?: number | null;
           requires_plate?: boolean;
           level: TripLevel;
           terrain: TripTerrain;

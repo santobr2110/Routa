@@ -65,7 +65,10 @@ export default function PrivacidadePage() {
           <p>
             Não vendemos nem repassamos seus dados, não mandamos propaganda e não usamos
             rastreadores de anúncio. Pagamentos acontecem por Pix direto com o organizador: a
-            Routa não recebe nem guarda dados bancários.
+            Routa não recebe nem guarda dados bancários. Se o organizador aceitar cartão, o
+            pagamento é feito na página da empresa de pagamento escolhida por ele (como Mercado
+            Pago ou InfinitePay), que segue a política de privacidade dela: a Routa nunca vê os
+            dados do seu cartão.
           </p>
           <p>
             Usamos só o necessário para o site funcionar: o cookie de login do organizador e a

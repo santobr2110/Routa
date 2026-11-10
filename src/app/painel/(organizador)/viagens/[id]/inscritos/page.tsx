@@ -31,7 +31,7 @@ export default async function InscritosPage({
   const { data: trip } = await supabase
     .from("trips")
     .select(
-      "id, title, status, start_date, end_date, destination, capacity, pricing_mode, price_cents, pillion_price_cents, pix_key",
+      "id, title, status, start_date, end_date, destination, capacity, pricing_mode, price_cents, pillion_price_cents, pix_key, card_enabled, card_url, card_pillion_url, card_price_cents, card_pillion_price_cents",
     )
     .eq("id", id)
     .maybeSingle();
@@ -64,6 +64,17 @@ export default async function InscritosPage({
       amountCents: amount,
       txid: pixTxid(registrationId),
     });
+  const cardText = (hasPillion: boolean) => {
+    if (!trip.card_enabled || !trip.card_url) return "";
+    const url = hasPillion ? (trip.card_pillion_url ?? trip.card_url) : trip.card_url;
+    const amount =
+      trip.pricing_mode !== "fixed"
+        ? null
+        : hasPillion
+          ? (trip.card_pillion_price_cents ?? trip.pillion_price_cents)
+          : (trip.card_price_cents ?? trip.price_cents);
+    return `\n\nPrefere cartão de crédito? ${amount ? `${formatBRL(amount)} por este link: ` : "É por este link: "}${url}`;
+  };
   const promotedMessage = (r: (typeof confirmed)[number]) => {
     const due = amountDue(trip, r.has_pillion);
     return [
@@ -72,7 +83,10 @@ export default async function InscritosPage({
       pixCode(r.id, due)
         ? `Pix copia e cola (é só colar no app do banco):\n\n${pixCode(r.id, due)}\n\nMe manda o comprovante por aqui.`
         : `Minha chave Pix: ${trip.pix_key}. Me manda o comprovante por aqui.`,
-    ].join(" ");
+      cardText(r.has_pillion),
+    ]
+      .filter(Boolean)
+      .join(" ");
   };
 
   const greeting = (name: string) =>
