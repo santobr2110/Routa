@@ -62,7 +62,8 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - `trip_photos`: id, trip_id, storage_path, position (0–4, máx. 5 fotos)
 - `registrations`: id, trip_id, name, whatsapp, email, bike (texto "marca modelo"), bike_brand, bike_model, bike_year, bike_color, bike_plate (só se a viagem pede; formato `ABC1D23`/`ABC1234` sem hífen), has_pillion, pillion_name, emergency_name, emergency_phone, terms_accepted_at, terms_text_accepted (cópia do termo no momento do aceite), payment_status ('pending' | 'paid'), status ('confirmed' | 'waitlist' | 'cancelled'), cancelled_at, created_at
 - `trips.requires_plate` (boolean): a inscrição pede a placa.
-- Esquema `private` (não exposto pela API): `app_secrets` (segredo da assinatura) e `registration_attempts` (hash do IP + data, para o limite).
+- Esquema `private` (não exposto pela API): `app_secrets` (segredo da assinatura), `registration_attempts` (hash do IP + data, para o limite) e `admins` (quem revisa os selos).
+- `cadastur_verifications`: id, organizer_id, cnpj (14 dígitos), certificate_number, valid_until, certificate_path (bucket privado `cadastur-certificates`), status ('pending' | 'approved' | 'rejected'), reject_reason, reviewed_at, created_at. Um pendente por organizador.
 - Telefones guardados só com dígitos e o 55 na frente (`5511999998888`).
 
 **Decisões tomadas (sessão 1):**
@@ -84,6 +85,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
 - **Login (sessão 2):** e-mail e senha, sem link mágico. App autenticador (TOTP) opcional no perfil. Os e-mails de confirmação e de nova senha usam o template `token_hash` (README, passo 5), para funcionar quando o link abre em outro navegador do celular. Use um endereço só (`NEXT_PUBLIC_SITE_URL` = Site URL do Supabase): o login guarda dados por endereço.
 - **Proteção da inscrição (sessão 3):** `register_for_trip` exige `p_proof` = HMAC-SHA256 de `slug|whatsapp|ip_hash|issued_at` com o segredo `REGISTRATION_SIGNING_SECRET` (o mesmo valor fica em `private.app_secrets`); vale 5 minutos. Só a server action gera a prova, depois de conferir o Cloudflare Turnstile (`src/lib/registration-guard.ts`). Limite de 5 inscrições por hash de IP a cada 10 min. A versão antiga da função (10 argumentos) foi apagada na `0006`. Sem `TURNSTILE_SECRET_KEY`, o Turnstile é pulado (só para desenvolvimento). O token do Turnstile vale uma vez: o formulário recria o widget a cada envio (`attempt`).
 - **Ficha da moto (sessão 3):** marcas e modelos em `src/lib/bikes.ts` são só sugestões (datalist); a pessoa pode digitar qualquer coisa. A marca é gravada com a grafia da lista (`canonicalBrand`). Ano opcional (1950 até o ano que vem). A placa só é aceita quando a viagem pede; o banco descarta se não pediu. LGPD: `purge_old_plates()` apaga placas 90 dias após o fim da viagem, agendada com pg_cron (README 3.1).
+- **Selo Cadastur (sessão 4):** a API oficial do Cadastur (gov.br Conecta/Serpro) é só para órgãos públicos e os dados abertos estão desatualizados, então o selo é semiautomático: checagem automática do CNPJ (`src/lib/cnpj.ts`, BrasilAPI) + revisão humana. Quem é admin é a tabela `private.admins` (função `is_admin()`); a página `/painel/admin/selos` dá 404 para os outros. O organizador só cria pedidos pendentes (RLS) e nunca altera; o admin revisa pela função `admin_review_cadastur`. A checagem da Receita é refeita na tela do admin (não confiamos no que veio do navegador). O selo vale enquanto `valid_until >= hoje` (calculado na leitura, sem cron) e diz "verificado pela Routa", nunca que o governo certificou. Só pessoa jurídica por enquanto (guia pessoa física fica para depois). A próxima migration é a `0008` (o item de TOTP abaixo citava `0006`, número já usado).
 
 ## 7. Identidade visual
 
@@ -113,7 +115,7 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
     - [ ] Testar com login (o Claude não tem a senha do dono).
 - [x] Produção: `https://routa-wine.vercel.app` (projeto recriado na Vercel). Supabase: Site URL = esse endereço; Redirect URLs = ele e `http://localhost:3000/**`. Integração Supabase↔Vercel desligada (ela sobrescrevia a Site URL). Vercel precisa de `NEXT_PUBLIC_SITE_URL` = endereço de produção.
   - [x] SMTP do Gmail pessoal no Supabase (provisório). Quando tiver o domínio `routa.com.br`, trocar por Resend com remetente da Routa.
-- [ ] App autenticador opcional (TOTP) no perfil + tela do código no login + migration `0006` (RLS exige aal2 para quem ativou).
+- [ ] App autenticador opcional (TOTP) no perfil + tela do código no login + migration `0008` (RLS exige aal2 para quem ativou).
 - [x] Criar/editar viagem: `/painel/viagens/nova` e `/painel/viagens/[id]`, todos os campos, termo padrão editável, status (rascunho/publicada/encerrada), lista no `/painel`. Fotos: até 5, reduzidas no navegador e enviadas direto ao Storage; remover e escolher capa. Migration `0002` (policy de SELECT no storage, exigida pelo remove).
   - Testado pelo dono com o Supabase real (migration `0002` aplicada).
 - [x] Página pública `/v/[slug]` + Open Graph: fotos, datas, nível/terreno, valor piloto e piloto + garupa, vagas, saída e retorno com horário e mapa, roteiro, termo recolhido, botão fixo "Quero ir" (leva a `/v/[slug]/inscricao`, que ainda não existe). Prévia: capa como `og:image`; sem foto, cartão gerado em `/v/[slug]/og`. Tela de edição com "Mandar no WhatsApp", "Copiar link" e "Ver página".
@@ -131,6 +133,9 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
   - Testado pelo dono com login: remoção, promoção da fila e aviso pelo WhatsApp.
 - [ ] Deploy na Vercel
 - [x] Proteção contra inscrições falsas (sessão 3, migration `0006`): Turnstile + prova assinada (HMAC) + limite por IP. Testado num Postgres local: prova válida, falsa, de outro WhatsApp, vencida e limite por IP.
-  - [ ] Aplicar a `0006`, gravar o segredo no banco e na Vercel, criar o widget Turnstile (README 3.1) e testar com o Supabase real.
+  - [x] Aplicada no Supabase, segredo e Turnstile configurados, testado em produção pelo dono (10/11).
 - [x] Ficha da moto (sessão 3, migration `0006`): marca e modelo com sugestões, ano e cor opcionais, placa quando o organizador liga "Pedir a placa" na viagem; aparece no painel (placa em "Ver mais") e na planilha (colunas Moto e Placa). Página de privacidade atualizada.
-  - [ ] Ligar o pg_cron e agendar `purge_old_plates` (README 3.1).
+  - [x] pg_cron e `purge_old_plates` configurados pelo dono (10/11).
+- [x] Selo Cadastur semiautomático (sessão 4, migration `0007`): pedido no `/painel/perfil` (CNPJ, número do certificado, validade e arquivo PDF/JPG/PNG no bucket privado `cadastur-certificates`), checagem do CNPJ na Receita (BrasilAPI: dígitos, existe, ATIVA; CNAE de turismo vira alerta), revisão do admin em `/painel/admin/selos` (abre o certificado com link temporário, consulta pública do Cadastur, aprovar/recusar com motivo), selo na página pública da viagem, aviso no painel 30 dias antes de vencer e selo some sozinho depois da validade. Testado num Postgres local: RLS do pedido, um pendente por vez, organizador não se aprova, só admin lista e revisa, selo some ao vencer.
+  - [ ] Aplicar a `0007`, cadastrar o admin (README "Selo Cadastur") e testar com o Supabase real.
+  - [ ] Modo Expedição (viagens comerciais) ainda não existe: `has_valid_cadastur(organizer_id)` está pronta para ele.

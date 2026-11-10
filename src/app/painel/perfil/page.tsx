@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getOrganizer, requireUser } from "@/lib/auth";
 import { formatBrPhone } from "@/lib/format";
+import { CadasturSection } from "./cadastur-section";
 import { ChangePasswordForm } from "./change-password-form";
 import { ProfileForm } from "./profile-form";
 
@@ -31,6 +32,8 @@ export default async function PerfilPage() {
         email={user.email}
         isNew={!organizer}
       />
+
+      {organizer && <CadasturSection organizerId={organizer.id} />}
 
       {organizer && <ChangePasswordForm />}
     </div>

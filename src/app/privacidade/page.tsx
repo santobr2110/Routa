@@ -53,6 +53,12 @@ export default function PrivacidadePage() {
             WhatsApp aparecem para quem garantiu vaga nas suas viagens, para mandarem o
             comprovante do Pix.
           </p>
+          <p>
+            <strong>Selo Cadastur (opcional):</strong> se você pedir o selo, guardamos o CNPJ, o
+            número e a validade do certificado e o arquivo que você enviar. O arquivo só é visto
+            pela equipe da Routa que confere o pedido. O CNPJ é consultado na base pública da
+            Receita Federal. Na página da viagem aparece só o selo e a validade.
+          </p>
         </Section>
 
         <Section title="O que não fazemos">

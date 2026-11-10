@@ -102,6 +102,20 @@ Abra http://localhost:3000.
 
 > **E-mails:** o e-mail padrão do Supabase manda poucos e-mails por hora e **só para os membros da equipe do projeto**. Para testar, crie contas com o seu e-mail. Em produção é preciso um SMTP próprio.
 
+### 3.2. Selo Cadastur (admin)
+
+O organizador que é agência de turismo pede o selo em **Perfil > Selo Cadastur** (CNPJ, número do certificado, validade e o arquivo do certificado). A Routa confere o CNPJ na Receita Federal (BrasilAPI) e o pedido vai para a revisão de um admin em **`/painel/admin/selos`**.
+
+**Configurar (uma vez), depois de aplicar a migration `0007`:** cadastre você como admin no SQL Editor, com o e-mail que você usa para entrar na Routa:
+
+```sql
+insert into private.admins (user_id)
+select id from auth.users where email = 'SEU-EMAIL@exemplo.com'
+on conflict do nothing;
+```
+
+Para revisar: abra o certificado, confira na consulta pública do Cadastur (https://cadastur.turismo.gov.br/) se o CNPJ, o número e a validade batem, e clique em **Aprovar selo** ou **Recusar** (com motivo). O selo aparece nas viagens do organizador e some sozinho depois da data de validade.
+
 ## Comandos
 
 | Comando | Para quê |
@@ -132,6 +146,7 @@ src/types/database.ts  tipos do banco
 - Toda tabela tem **Row Level Security**. O visitante não lê nenhuma tabela direto.
 - A página pública e a inscrição usam as funções `get_public_trip` e `register_for_trip`. Elas nunca expõem a chave Pix nem os dados dos inscritos para quem não deve ver.
 - `register_for_trip` exige a prova assinada pelo servidor (`src/lib/registration-guard.ts`) e limita inscrições por IP. O segredo fica no esquema `private`, que não é exposto pela API.
+- **Selo Cadastur:** tabela `cadastur_verifications` (o organizador só cria pedidos pendentes) e bucket privado `cadastur-certificates`. Admins ficam em `private.admins`; revisão pelas funções `admin_list_cadastur` e `admin_review_cadastur`. A página pública recebe o selo válido em `organizer_cadastur` (`get_public_trip`).
 - **Ficha da moto:** marca, modelo, ano e cor (`bike_brand`, `bike_model`, `bike_year`, `bike_color`; o campo antigo `bike` guarda "marca modelo"). A placa (`bike_plate`) só é guardada quando a viagem tem `requires_plate` e é apagada 90 dias depois (`purge_old_plates`).
 - O organizador só vê as próprias viagens e os próprios inscritos.
 - **Fotos:** o navegador reduz a foto (máx. 1600px, JPEG) e sobe direto para o bucket `trip-photos`, em `{organizer_id}/{trip_id}/{uuid}.jpg`. Depois uma server action grava a linha em `trip_photos`. Máximo de 5 por viagem; a posição 0 é a capa.

@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0006).
+// Escrito à mão a partir de supabase/migrations/ (até a 0007).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -17,6 +17,7 @@ export type TripTerrain = "asphalt" | "mixed" | "offroad";
 export type TripStatus = "draft" | "published" | "closed";
 export type PaymentStatus = "pending" | "paid";
 export type RegistrationStatus = "confirmed" | "waitlist" | "cancelled";
+export type CadasturStatus = "pending" | "approved" | "rejected";
 
 export type Database = {
   __InternalSupabase: {
@@ -189,6 +190,41 @@ export type Database = {
           },
         ];
       };
+      cadastur_verifications: {
+        Row: {
+          id: string;
+          organizer_id: string;
+          cnpj: string;
+          certificate_number: string;
+          valid_until: string;
+          certificate_path: string;
+          status: CadasturStatus;
+          reject_reason: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        };
+        // O organizador só cria pedidos pendentes (RLS); quem revisa é o admin (função).
+        Insert: {
+          id?: string;
+          organizer_id: string;
+          cnpj: string;
+          certificate_number: string;
+          valid_until: string;
+          certificate_path: string;
+          status?: "pending";
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "cadastur_verifications_organizer_id_fkey";
+            columns: ["organizer_id"];
+            isOneToOne: false;
+            referencedRelation: "organizers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -220,6 +256,30 @@ export type Database = {
           p_proof: string;
         };
         Returns: Json;
+      };
+      is_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      organizer_cadastur_seal: {
+        Args: { p_organizer_id: string };
+        Returns: Json;
+      };
+      has_valid_cadastur: {
+        Args: { p_organizer_id: string };
+        Returns: boolean;
+      };
+      admin_list_cadastur: {
+        Args: { p_status?: CadasturStatus };
+        Returns: Json;
+      };
+      admin_review_cadastur: {
+        Args: { p_id: string; p_approve: boolean; p_reason?: string | null };
+        Returns: undefined;
+      };
+      purge_old_plates: {
+        Args: Record<string, never>;
+        Returns: number;
       };
       cancel_registration: {
         Args: { p_registration_id: string };

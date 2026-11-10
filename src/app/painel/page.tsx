@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CompassIcon } from "@/components/logo";
 import { requireOrganizer } from "@/lib/auth";
+import { daysUntil, sealState } from "@/lib/cadastur";
 import { formatDateBR } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, photoUrl } from "@/lib/trips";
@@ -32,9 +33,34 @@ export default async function PainelPage() {
     counts.set(r.trip_id, c);
   }
 
+  // Aviso do selo Cadastur vencendo ou vencido (sem pedido de renovação em análise).
+  const { data: seals } = await supabase
+    .from("cadastur_verifications")
+    .select("status, valid_until")
+    .in("status", ["approved", "pending"]);
+  const latestSeal = (seals ?? [])
+    .filter((v) => v.status === "approved")
+    .sort((a, b) => b.valid_until.localeCompare(a.valid_until))[0];
+  const renewing = (seals ?? []).some((v) => v.status === "pending");
+  const sealWarning =
+    latestSeal && !renewing && sealState(latestSeal.valid_until) !== "valid"
+      ? daysUntil(latestSeal.valid_until)
+      : null;
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-extrabold tracking-tight">E aí, {firstName}! 🏍️</h1>
+
+      {sealWarning !== null && (
+        <Link
+          href="/painel/perfil"
+          className="block rounded-xl bg-warn-soft px-4 py-3 font-medium text-warn"
+        >
+          {sealWarning >= 0
+            ? `Seu selo Cadastur vence em ${sealWarning} dia(s). Toque aqui para enviar o certificado renovado.`
+            : "Seu selo Cadastur venceu e saiu das suas viagens. Toque aqui para renovar."}
+        </Link>
+      )}
 
       <Link href="/painel/viagens/nova" className="btn-primary">
         + Criar viagem

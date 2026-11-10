@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import type { CadasturSeal } from "@/lib/cadastur";
 import type { PricingMode, TripLevel, TripStatus, TripTerrain } from "@/types/database";
 
 /** O que a função get_public_trip devolve (sem chave Pix e sem dados de inscritos). */
@@ -32,6 +33,8 @@ export type PublicTrip = {
   registration_open: boolean;
   terms_text: string;
   organizer_name: string;
+  /** Selo Cadastur válido do organizador (migration 0007) ou null. */
+  organizer_cadastur: CadasturSeal | null;
   spots_left: number;
   photos: string[];
 };

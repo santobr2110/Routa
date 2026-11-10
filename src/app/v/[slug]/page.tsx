@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CompassIcon, Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { formatBRL, formatDateBR, formatDateRangeBR } from "@/lib/format";
+import { formatBRL, formatDateBR, formatDateRangeBR, formatDateTimeBR } from "@/lib/format";
 import { getPublicTrip, type PublicTrip } from "@/lib/public-trip";
 import { tripUrl } from "@/lib/site";
 import { LEVEL_LABELS, TERRAIN_LABELS, photoUrl } from "@/lib/trips";
@@ -130,7 +130,22 @@ export default async function PublicTripPage({ params }: PageProps<"/v/[slug]">)
               {trip.return_point ?? "Mesmo local da saída"}
               <MapLink url={trip.return_point_url} />
             </Info>
-            <Info label="Organização">{trip.organizer_name}</Info>
+            <Info label="Organização">
+              {trip.organizer_name}
+              {trip.organizer_cadastur && (
+                <span
+                  className="mt-1 flex w-fit items-center gap-1 rounded-full bg-success-soft px-3 py-1 text-sm font-semibold text-success"
+                  title={`Cadastur conferido pela Routa em ${formatDateTimeBR(trip.organizer_cadastur.verified_at)}`}
+                >
+                  ✅ Agente de turismo verificado – Cadastur
+                </span>
+              )}
+              {trip.organizer_cadastur && (
+                <span className="block text-sm text-muted">
+                  Verificado pela Routa · válido até {formatDateBR(trip.organizer_cadastur.valid_until)}
+                </span>
+              )}
+            </Info>
           </dl>
 
           {trip.description && (
