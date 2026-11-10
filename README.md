@@ -116,6 +116,17 @@ on conflict do nothing;
 
 Para revisar: abra o certificado, confira na consulta pública do Cadastur (https://cadastur.turismo.gov.br/) se o CNPJ, o número e a validade batem, e clique em **Aprovar selo** ou **Recusar** (com motivo). O selo aparece nas viagens do organizador e some sozinho depois da data de validade.
 
+### 3.4. Painel do organizador
+
+Todo organizador tem, em `/painel`, um menu com:
+
+- **Visão geral:** escolha o período (7 dias, 30 dias, 90 dias ou 12 meses). Mostra viagens abertas, vagas preenchidas, fila de espera, pagamentos, quanto falta receber, próximas saídas, inscrições e valores no período (comparados com o período anterior), gente nova e quem voltou, antecedência das inscrições, dia da semana, marcas de moto e garupa.
+- **Viagens:** todas as viagens, com filtros (próximas, rascunhos, já aconteceram).
+- **Participantes:** todo mundo que já se inscreveu nas suas viagens (juntando pelo WhatsApp), com quantas viagens fez, a última e a próxima.
+- **Perfil.**
+
+Dentro de cada viagem há as abas **Editar**, **Inscritos** e **Números**.
+
 ### 3.3. Área de administração
 
 Quem está em `private.admins` vê o link **Admin** no menu e acessa `/painel/admin`:

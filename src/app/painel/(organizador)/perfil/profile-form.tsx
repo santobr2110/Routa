@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { SubmitButton } from "@/components/submit-button";
-import { saveProfile, type ProfileState } from "../actions";
+import { saveProfile, type ProfileState } from "../../actions";
 
 export function ProfileForm({
   initial,

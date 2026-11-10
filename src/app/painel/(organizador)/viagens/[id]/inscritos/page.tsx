@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cancelRegistration } from "./actions";
 import { PaymentToggle } from "./payment-toggle";
 import { RemoveButton } from "./remove-button";
+import { TripHeader } from "../../trip-header";
 
 export const metadata: Metadata = { title: "Inscritos" };
 
@@ -28,7 +29,9 @@ export default async function InscritosPage({
   // O RLS só devolve a viagem e as inscrições do próprio organizador.
   const { data: trip } = await supabase
     .from("trips")
-    .select("id, title, capacity, pricing_mode, price_cents, pillion_price_cents, pix_key")
+    .select(
+      "id, title, status, start_date, end_date, destination, capacity, pricing_mode, price_cents, pillion_price_cents, pix_key",
+    )
     .eq("id", id)
     .maybeSingle();
   if (!trip) notFound();
@@ -67,17 +70,7 @@ export default async function InscritosPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href={`/painel/viagens/${trip.id}`}
-        className="inline-flex min-h-11 sm:min-h-9 items-center font-semibold text-accent"
-      >
-        ← Voltar para a viagem
-      </Link>
-
-      <div className="space-y-1">
-        <h1 className="page-title">Inscritos</h1>
-        <p className="text-base text-muted break-words">{trip.title}</p>
-      </div>
+      <TripHeader trip={trip} current="inscritos" inscritos={registrations.length} />
 
       {erro === "remover" && (
         <p className="rounded-xl bg-danger-soft px-4 py-3 font-medium text-danger" role="alert">
@@ -135,7 +128,7 @@ export default async function InscritosPage({
                 key={f}
                 href={f === "todos" ? "?" : `?filtro=${f}`}
                 aria-current={filter === f ? "page" : undefined}
-                className="inline-flex min-h-11 sm:min-h-9 items-center rounded-full border border-line-strong px-4 font-semibold aria-[current=page]:border-brand aria-[current=page]:bg-brand-soft"
+                className="inline-flex min-h-9 items-center rounded-md border border-line px-3 text-sm text-ink-soft hover:text-ink aria-[current=page]:border-ink aria-[current=page]:font-medium aria-[current=page]:text-ink"
               >
                 {FILTERS[f]}
               </Link>

@@ -5,6 +5,9 @@ import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
+const NAV_LINK =
+  "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-ink-soft hover:bg-surface-muted hover:text-ink sm:min-h-9";
+
 export default async function PainelLayout({ children }: LayoutProps<"/painel">) {
   // Link de admin só para quem é admin (o banco confere de novo em cada página de admin).
   const user = await getUser();
@@ -20,24 +23,17 @@ export default async function PainelLayout({ children }: LayoutProps<"/painel">)
           <nav className="flex items-center gap-1">
             <ThemeToggle />
             {isAdmin && (
-              <Link
-                href="/painel/admin"
-                className="inline-flex min-h-11 sm:min-h-9 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
-              >
-                Admin
-              </Link>
+              <>
+                <Link href="/painel" className={NAV_LINK}>
+                  Meu painel
+                </Link>
+                <Link href="/painel/admin" className={NAV_LINK}>
+                  Admin
+                </Link>
+              </>
             )}
-            <Link
-              href="/painel/perfil"
-              className="inline-flex min-h-11 sm:min-h-9 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
-            >
-              Perfil
-            </Link>
             <form action={signOut}>
-              <button
-                type="submit"
-                className="inline-flex min-h-11 sm:min-h-9 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
-              >
+              <button type="submit" className={NAV_LINK}>
                 Sair
               </button>
             </form>

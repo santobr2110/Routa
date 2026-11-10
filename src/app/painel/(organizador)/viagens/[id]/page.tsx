@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOrganizer } from "@/lib/auth";
 import { centsToInput, formatDateRangeBR } from "@/lib/format";
 import { tripUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
-import { STATUS_LABELS, shareMessage, type TripFormValues } from "@/lib/trips";
+import { shareMessage, type TripFormValues } from "@/lib/trips";
 import type { TripStatus } from "@/types/database";
 import { updateTrip } from "../actions";
 import { PhotoManager } from "../photo-manager";
 import { ShareActions } from "../share-actions";
 import { TRIP_FORM_ID, TripForm } from "../trip-form";
+import { TripHeader } from "../trip-header";
 
 export const metadata: Metadata = { title: "Editar viagem" };
 
@@ -68,24 +68,13 @@ export default async function EditarViagemPage({
 
   return (
     <div className="space-y-6">
-      <Link href="/painel" className="inline-flex min-h-11 sm:min-h-9 items-center font-semibold text-accent">
-        ← Voltar
-      </Link>
+      <TripHeader trip={trip} current="editar" inscritos={activeRegistrations ?? 0} />
 
       {nova && (
         <p className="rounded-xl bg-success-soft px-4 py-3 font-medium text-success" role="status">
           Viagem criada! 🎉 Agora adiciona umas fotos pra deixar a página bonita.
         </p>
       )}
-
-      <div className="space-y-2">
-        <h1 className="page-title break-words">{trip.title}</h1>
-        <StatusBadge status={trip.status} />
-      </div>
-
-      <Link href={`/painel/viagens/${trip.id}/inscritos`} className="btn-secondary">
-        👥 Ver inscritos ({activeRegistrations ?? 0})
-      </Link>
 
       <StatusActions status={trip.status} />
 
@@ -124,19 +113,6 @@ export default async function EditarViagemPage({
         submitLabel="Salvar alterações"
       />
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: TripStatus }) {
-  const colors: Record<TripStatus, string> = {
-    draft: "bg-surface-strong text-ink-soft",
-    published: "bg-success-soft text-success",
-    closed: "bg-warn-soft text-warn",
-  };
-  return (
-    <span className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${colors[status]}`}>
-      {STATUS_LABELS[status]}
-    </span>
   );
 }
 
