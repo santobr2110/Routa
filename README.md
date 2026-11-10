@@ -97,6 +97,12 @@ A inscrição é aberta (sem login), então ela tem três proteções contra ins
    select cron.schedule('routa-prazos', '*/15 * * * *', $$select private.process_payment_deadlines()$$);
    ```
 
+7. **Lixeira de viagens (migration `0014`):** viagens excluídas ficam 30 dias na lixeira e depois são apagadas de vez. Para a limpeza rodar sozinha todo dia, rode no SQL Editor:
+
+   ```sql
+   select cron.schedule('routa-lixeira', '0 5 * * *', $$select private.purge_deleted_trips()$$);
+   ```
+
 
 ### 4. Instalar e rodar
 
@@ -122,6 +128,13 @@ on conflict do nothing;
 ```
 
 Para revisar: abra o certificado, confira na consulta pública do Cadastur (https://cadastur.turismo.gov.br/) se o CNPJ, o número e a validade batem, e clique em **Aprovar selo** ou **Recusar** (com motivo). O selo aparece nas viagens do organizador e some sozinho depois da data de validade.
+
+### 3.8. Excluir viagem e lixeira
+
+- **Organizador:** na tela da viagem (aba Editar), no fim, **Excluir viagem**. São 3 confirmações: o aviso com quantos inscritos/pagos/fotos/avisos se perdem (com botão para baixar a planilha antes), digitar `EXCLUIR` e a senha da conta.
+- A viagem vai para a **Lixeira** (link na lista de Viagens) e fica 30 dias, com tudo. Dá para restaurar nesse prazo. Enquanto isso, a página sai do ar, as inscrições fecham e o inscrito que abrir o link pessoal vê que a viagem foi excluída.
+- **Admin:** na tela da viagem em Admin › Viagens, **Excluir viagem** pede também o motivo. O motivo fica no histórico de moderação e aparece no painel do organizador, que não consegue restaurar. O admin restaura qualquer viagem da lixeira (filtro **Lixeira** na lista).
+- Ninguém consegue mais apagar uma viagem direto pela API. Precisa da migration `0014`.
 
 ### 3.7. Página do inscrito, mural e e-mail
 

@@ -12,6 +12,11 @@ const RESULTS: Record<string, { text: string; ok: boolean }> = {
     ok: true,
   },
   "no-ar": { text: "Viagem de volta no ar.", ok: true },
+  excluida: {
+    text: "Viagem excluída e na lixeira. O organizador vê o aviso com o motivo e não consegue restaurar.",
+    ok: true,
+  },
+  restaurada: { text: "Viagem restaurada da lixeira.", ok: true },
   "sem-motivo": { text: "Escreva o motivo (pelo menos 3 letras).", ok: false },
   "voce-mesmo": { text: "Você não pode suspender a própria conta.", ok: false },
   erro: { text: "Não deu para salvar. Tente de novo.", ok: false },

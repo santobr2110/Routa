@@ -3,14 +3,17 @@ import { notFound } from "next/navigation";
 import { requireOrganizer } from "@/lib/auth";
 import { centsToInput, formatDateRangeBR } from "@/lib/format";
 import { tripUrl } from "@/lib/site";
+import { TRASH_DAYS } from "@/lib/trash";
 import { createClient } from "@/lib/supabase/server";
 import { shareMessage, type TripFormValues } from "@/lib/trips";
 import type { TripStatus } from "@/types/database";
+import { DeleteTripForm } from "@/components/delete-trip-form";
 import { updateTrip } from "../actions";
 import { PhotoManager } from "../photo-manager";
 import { ShareActions } from "../share-actions";
 import { TRIP_FORM_ID, TripForm } from "../trip-form";
 import { TripHeader } from "../trip-header";
+import { deleteTrip } from "./delete-actions";
 
 export const metadata: Metadata = { title: "Editar viagem" };
 
@@ -20,7 +23,7 @@ export default async function EditarViagemPage({
 }: PageProps<"/painel/viagens/[id]">) {
   const { user } = await requireOrganizer();
   const { id } = await params;
-  const { nova } = await searchParams;
+  const { nova, restaurada } = await searchParams;
 
   const supabase = await createClient();
   // O RLS só devolve viagens do próprio organizador.
@@ -31,12 +34,18 @@ export default async function EditarViagemPage({
     .maybeSingle();
   if (!trip) notFound();
 
-  // Inscritos ativos (confirmados + lista de espera), para avisar antes de mudar a viagem.
-  const { count: activeRegistrations } = await supabase
-    .from("registrations")
-    .select("id", { count: "exact", head: true })
-    .eq("trip_id", trip.id)
-    .neq("status", "cancelled");
+  // Inscritos (para avisar antes de mudar e para o resumo da exclusão) e avisos do mural.
+  const [{ data: regs }, { count: updatesCount }] = await Promise.all([
+    supabase.from("registrations").select("status, payment_status").eq("trip_id", trip.id),
+    supabase
+      .from("trip_updates")
+      .select("id", { count: "exact", head: true })
+      .eq("trip_id", trip.id),
+  ]);
+  const confirmed = (regs ?? []).filter((r) => r.status === "confirmed");
+  const paidCount = confirmed.filter((r) => r.payment_status === "paid").length;
+  const waitlistCount = (regs ?? []).filter((r) => r.status === "waitlist").length;
+  const activeRegistrations = confirmed.length + waitlistCount;
 
   const photos = [...trip.trip_photos].sort((a, b) => a.position - b.position);
 
@@ -85,6 +94,13 @@ export default async function EditarViagemPage({
         </p>
       )}
 
+      {restaurada && (
+        <p className="rounded-xl bg-success-soft px-4 py-3 font-medium text-success" role="status">
+          Viagem restaurada da lixeira, com inscritos, fotos e avisos.
+          {trip.status !== "draft" && " A página e as inscrições voltaram como estavam."}
+        </p>
+      )}
+
       <StatusActions status={trip.status} />
 
       {!!activeRegistrations && (
@@ -121,8 +137,62 @@ export default async function EditarViagemPage({
         initial={initial}
         submitLabel="Salvar alterações"
       />
+
+      <section className="space-y-3 border-t border-line pt-6" aria-labelledby="zona-perigo">
+        <div className="space-y-1">
+          <h2 id="zona-perigo" className="section-title text-danger">
+            Excluir viagem
+          </h2>
+          <p className="text-sm text-muted">
+            Para quando a viagem não vai mais acontecer ou foi criada por engano. Ela vai para a
+            lixeira e dá para restaurar por {TRASH_DAYS} dias.
+          </p>
+        </div>
+        <DeleteTripForm
+          action={deleteTrip.bind(null, trip.id)}
+          summary={deleteSummary({
+            confirmed: confirmed.length,
+            paid: paidCount,
+            waitlist: waitlistCount,
+            photos: photos.length,
+            updates: updatesCount ?? 0,
+          })}
+          consequences={[
+            "A página da viagem sai do ar e as inscrições fecham na hora.",
+            "Ela some do seu painel, da página do clube e dos números.",
+            "Quem já se inscreveu e abrir o link pessoal vê que a viagem foi excluída, sem os dados de pagamento. Avise o grupo pelo WhatsApp.",
+            ...(paidCount > 0
+              ? [`${paidCount} ${paidCount === 1 ? "pessoa já pagou" : "pessoas já pagaram"}: a devolução é com você, fora da Routa.`]
+              : []),
+          ]}
+          spreadsheetHref={
+            regs && regs.length > 0 ? `/painel/viagens/${trip.id}/inscritos/planilha` : undefined
+          }
+        />
+      </section>
     </div>
   );
+}
+
+function plural(n: number, one: string, many: string) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+/** "4 confirmados (2 pagos), 1 na fila, 3 fotos e 2 avisos". */
+function deleteSummary(c: {
+  confirmed: number;
+  paid: number;
+  waitlist: number;
+  photos: number;
+  updates: number;
+}) {
+  const parts = [
+    `${plural(c.confirmed, "confirmado", "confirmados")}${c.confirmed > 0 ? ` (${plural(c.paid, "pago", "pagos")})` : ""}`,
+    `${c.waitlist} na fila`,
+    plural(c.photos, "foto", "fotos"),
+    plural(c.updates, "aviso no mural", "avisos no mural"),
+  ];
+  return `${parts.slice(0, -1).join(", ")} e ${parts[parts.length - 1]}`;
 }
 
 /**

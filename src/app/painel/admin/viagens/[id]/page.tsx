@@ -16,7 +16,9 @@ import { AuditList } from "../../audit-list";
 import { ReasonForm } from "../../reason-form";
 import { ResultMessage } from "../../result-message";
 import { Badge, Stat } from "../../stat";
-import { setTripHidden } from "./actions";
+import { DeleteTripForm } from "@/components/delete-trip-form";
+import { daysLeft } from "@/lib/trash";
+import { adminDeleteTrip, adminRestoreTrip, setTripHidden } from "./actions";
 
 export const metadata: Metadata = {
   title: "Admin · Viagem",
@@ -54,7 +56,10 @@ export default async function AdminViagemPage({
     rows.reduce((total, r) => total + (r.amount ?? 0), 0);
   const fixed = trip.pricing_mode === "fixed";
   const isPublic =
-    trip.status !== "draft" && !trip.admin_hidden_at && !organizer.suspended_at;
+    trip.status !== "draft" &&
+    !trip.admin_hidden_at &&
+    !trip.deleted_at &&
+    !organizer.suspended_at;
 
   return (
     <div className="space-y-6">
@@ -74,6 +79,11 @@ export default async function AdminViagemPage({
             {STATUS_LABELS[trip.status]}
           </Badge>
           {trip.admin_hidden_at && <Badge tone="danger">Fora do ar</Badge>}
+          {trip.deleted_at && (
+            <Badge tone="danger">
+              {trip.deleted_by_admin ? "Excluída pela administração" : "Na lixeira"}
+            </Badge>
+          )}
         </div>
         <p className="text-ink-soft">
           {trip.destination} ·{" "}
@@ -232,6 +242,42 @@ export default async function AdminViagemPage({
             )}
           </section>
 
+          <section className="card space-y-3 p-4">
+            <h2 className="font-medium">Lixeira</h2>
+            {trip.deleted_at ? (
+              <>
+                <p className="text-sm text-ink-soft">
+                  {trip.deleted_by_admin
+                    ? `Excluída pela administração em ${formatDateTimeBR(trip.deleted_at)}. Motivo: ${trip.deleted_reason}.`
+                    : `O organizador excluiu em ${formatDateTimeBR(trip.deleted_at)}.`}{" "}
+                  {trip.purge_at &&
+                    `Será apagada de vez em ${daysLeft(trip.purge_at)} dia(s).`}
+                </p>
+                <form action={adminRestoreTrip.bind(null, trip.id)}>
+                  <SubmitButton pendingText="Restaurando…" className="btn-secondary">
+                    Restaurar da lixeira
+                  </SubmitButton>
+                </form>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-ink-soft">
+                  Excluir manda a viagem para a lixeira por 30 dias e depois apaga tudo. O
+                  organizador vê o aviso com o motivo e não consegue restaurar.
+                </p>
+                <DeleteTripForm
+                  action={adminDeleteTrip.bind(null, trip.id)}
+                  askReason
+                  summary={`${confirmed.length} confirmado(s) (${paid.length} pago(s)), ${waitlist.length} na fila e ${trip.photos} foto(s)`}
+                  consequences={[
+                    "A página sai do ar, as inscrições fecham e a viagem some do painel do organizador.",
+                    "Os inscritos que abrirem o link pessoal veem que a viagem foi excluída.",
+                    "A exclusão e o motivo ficam no histórico de moderação.",
+                  ]}
+                />
+              </>
+            )}
+          </section>
         </aside>
       </div>
     </div>

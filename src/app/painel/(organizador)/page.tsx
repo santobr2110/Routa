@@ -6,6 +6,8 @@ import { daysUntil, sealState } from "@/lib/cadastur";
 import { loadOrganizerData } from "@/lib/organizer-data";
 import { organizerOverview } from "@/lib/organizer-stats";
 import { parsePeriod } from "@/lib/periods";
+import { daysLeft } from "@/lib/trash";
+import { getDeletedTrips } from "@/lib/reauth";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizerOverview } from "./overview";
 
@@ -17,14 +19,17 @@ export default async function PainelPage({ searchParams }: PageProps<"/painel">)
   const period = parsePeriod((await searchParams).periodo);
 
   const supabase = await createClient();
-  const [{ trips, regs }, { data: seals }] = await Promise.all([
+  const [{ trips, regs }, { data: seals }, deleted] = await Promise.all([
     loadOrganizerData(),
     // Aviso do selo Cadastur vencendo ou vencido (sem pedido de renovação em análise).
     supabase
       .from("cadastur_verifications")
       .select("status, valid_until")
       .in("status", ["approved", "pending"]),
+    getDeletedTrips(),
   ]);
+  // Viagens que a administração excluiu (enquanto estão na lixeira).
+  const removedByAdmin = deleted.filter((t) => t.deleted_by_admin);
   const latestSeal = (seals ?? [])
     .filter((v) => v.status === "approved")
     .sort((a, b) => b.valid_until.localeCompare(a.valid_until))[0];
@@ -43,6 +48,25 @@ export default async function PainelPage({ searchParams }: PageProps<"/painel">)
           com a gente, responda o contato da Routa.
         </p>
       )}
+      {removedByAdmin.map((t) => (
+        <div
+          key={t.id}
+          className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger"
+          role="alert"
+        >
+          <p className="font-medium">
+            A administração da Routa excluiu a viagem “{t.title}”.
+          </p>
+          <p>
+            Motivo: {t.deleted_reason}. Ela está na{" "}
+            <Link href="/painel/viagens/lixeira" className="underline">
+              lixeira
+            </Link>{" "}
+            e será apagada de vez em {daysLeft(t.purge_at)} dia(s). Para pedir a revisão, fale com a
+            Routa.
+          </p>
+        </div>
+      ))}
       {sealWarning !== null && (
         <Link
           href="/painel/perfil"

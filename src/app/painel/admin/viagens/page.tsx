@@ -16,6 +16,7 @@ const STATUS_FILTERS = {
   draft: "Rascunho",
   closed: "Encerradas",
   hidden: "Fora do ar",
+  deleted: "Lixeira",
 } as const;
 const PERIOD_FILTERS = {
   upcoming: "Próximas",
@@ -169,6 +170,11 @@ export default async function AdminViagensPage({
                           {t.admin_hidden_at && (
                             <Badge tone="danger">Fora do ar</Badge>
                           )}
+                          {t.deleted_at && (
+                            <Badge tone="danger">
+                              {t.deleted_by_admin ? "Excluída (admin)" : "Na lixeira"}
+                            </Badge>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-2.5">
@@ -214,6 +220,11 @@ export default async function AdminViagensPage({
                     </Badge>
                     {t.admin_hidden_at && (
                       <Badge tone="danger">Fora do ar</Badge>
+                    )}
+                    {t.deleted_at && (
+                      <Badge tone="danger">
+                        {t.deleted_by_admin ? "Excluída (admin)" : "Na lixeira"}
+                      </Badge>
                     )}
                     {t.organizer_suspended_at && (
                       <Badge tone="danger">Organizador suspenso</Badge>

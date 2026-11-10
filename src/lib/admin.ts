@@ -125,6 +125,8 @@ export type AdminTripRow = {
   pricing_mode: "fixed" | "split";
   created_at: string;
   admin_hidden_at: string | null;
+  deleted_at: string | null;
+  deleted_by_admin: boolean;
   organizer_id: string;
   organizer_name: string;
   organizer_suspended_at: string | null;
@@ -153,6 +155,11 @@ export type AdminTripDetail = {
     updated_at: string;
     admin_hidden_at: string | null;
     admin_hidden_reason: string | null;
+    /** Lixeira (migration 0014). */
+    deleted_at: string | null;
+    deleted_by_admin: boolean;
+    deleted_reason: string | null;
+    purge_at: string | null;
     photos: number;
   };
   organizer: {
@@ -199,6 +206,8 @@ export const ACTION_LABELS: Record<string, string> = {
   organizer_reactivated: "Reativou o organizador",
   trip_hidden: "Tirou a viagem do ar",
   trip_restored: "Pôs a viagem de volta no ar",
+  trip_deleted: "Excluiu a viagem (lixeira)",
+  trip_undeleted: "Restaurou a viagem da lixeira",
   cadastur_approved: "Aprovou o selo Cadastur",
   cadastur_rejected: "Recusou o selo Cadastur",
 };

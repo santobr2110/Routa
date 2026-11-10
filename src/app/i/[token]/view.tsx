@@ -57,7 +57,17 @@ export function RegistrationView({ page }: { page: RegistrationPage }) {
           </div>
         </section>
 
-        {trip.unavailable && (
+        {trip.deleted && (
+          <div className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">
+            <p className="font-semibold">Esta viagem foi excluída</p>
+            <p>
+              Ela não vai mais acontecer pela Routa. Se você já pagou, fale com o organizador sobre a
+              devolução.
+            </p>
+          </div>
+        )}
+
+        {trip.unavailable && !trip.deleted && (
           <p className="rounded-xl bg-warn-soft px-4 py-3 text-sm font-medium text-warn" role="alert">
             Esta viagem está fora do ar na Routa no momento. Fale com o organizador para saber
             mais.
@@ -66,7 +76,7 @@ export function RegistrationView({ page }: { page: RegistrationPage }) {
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="min-w-0 space-y-8">
-            <Status page={page} />
+            {!trip.deleted && <Status page={page} />}
 
             {r.status === "confirmed" && r.payment_status === "pending" && payment && (
               <PaymentBox

@@ -7,6 +7,7 @@ import { formatBRL, formatDateRangeBR } from "@/lib/format";
 import { loadOrganizerData } from "@/lib/organizer-data";
 import { todayBR } from "@/lib/organizer-stats";
 import { amountDue } from "@/lib/registrations";
+import { getDeletedTrips } from "@/lib/reauth";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, photoUrl } from "@/lib/trips";
 
@@ -27,9 +28,10 @@ export default async function ViagensPage({ searchParams }: PageProps<"/painel/v
     typeof filtro === "string" && filtro in FILTERS ? (filtro as Filter) : "proximas";
 
   const supabase = await createClient();
-  const [{ trips, regs }, { data: photos }] = await Promise.all([
+  const [{ trips, regs }, { data: photos }, deleted] = await Promise.all([
     loadOrganizerData(),
     supabase.from("trip_photos").select("trip_id, storage_path, position").eq("position", 0),
+    getDeletedTrips(),
   ]);
   const covers = new Map((photos ?? []).map((p) => [p.trip_id, p.storage_path]));
   const today = todayBR();
@@ -82,6 +84,15 @@ export default async function ViagensPage({ searchParams }: PageProps<"/painel/v
             <span className="text-xs text-muted tabular-nums">{rows.filter(matches[key]).length}</span>
           </Link>
         ))}
+        {deleted.length > 0 && (
+          <Link
+            href="/painel/viagens/lixeira"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-sm text-ink-soft hover:text-ink sm:ml-auto"
+          >
+            🗑 Lixeira
+            <span className="text-xs text-muted tabular-nums">{deleted.length}</span>
+          </Link>
+        )}
       </nav>
 
       {shown.length === 0 ? (

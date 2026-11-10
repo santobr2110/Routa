@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0013).
+// Escrito à mão a partir de supabase/migrations/ (até a 0014).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -111,6 +111,11 @@ export type Database = {
           /** Tirada do ar pela administração (migration 0008). Só o admin altera. */
           admin_hidden_at: string | null;
           admin_hidden_reason: string | null;
+          /** Lixeira (migration 0014). Só as funções delete_trip/restore_trip/admin_* alteram. */
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deleted_by_admin: boolean;
+          deleted_reason: string | null;
         };
         Insert: {
           id?: string;
@@ -368,6 +373,11 @@ export type Database = {
         Args: { p_trip_id: string; p_hide: boolean; p_reason?: string | null };
         Returns: undefined;
       };
+      admin_delete_trip: { Args: { p_trip_id: string; p_reason: string }; Returns: undefined };
+      admin_restore_trip: { Args: { p_trip_id: string }; Returns: undefined };
+      delete_trip: { Args: { p_trip_id: string }; Returns: undefined };
+      restore_trip: { Args: { p_trip_id: string }; Returns: undefined };
+      list_deleted_trips: { Args: Record<string, never>; Returns: Json };
       admin_activity: { Args: { p_limit?: number }; Returns: Json };
       admin_audit_log: { Args: { p_limit?: number }; Returns: Json };
       admin_list_admins: { Args: Record<string, never>; Returns: Json };

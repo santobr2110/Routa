@@ -37,6 +37,8 @@ export type RegistrationPage = {
     pricing_mode: "fixed" | "split";
     status: "draft" | "published" | "closed";
     unavailable: boolean;
+    /** Excluída pelo organizador ou pela administração (lixeira, migration 0014). */
+    deleted: boolean;
     cover: string | null;
   };
   organizer: {
