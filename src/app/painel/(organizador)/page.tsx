@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CompassIcon } from "@/components/logo";
+import { CockpitHero, roadGreeting } from "@/components/cockpit";
 import { requireOrganizer } from "@/lib/auth";
 import { daysUntil, sealState } from "@/lib/cadastur";
 import { loadOrganizerData } from "@/lib/organizer-data";
@@ -81,21 +81,12 @@ export default async function PainelPage({ searchParams }: PageProps<"/painel">)
   );
 
   if (trips.length === 0) {
+    const greet = roadGreeting();
     return (
       <div className="space-y-8">
-        <h1 className="page-title">E aí, {firstName}!</h1>
+        <h1 className="sr-only">Painel</h1>
+        <CockpitHero firstName={firstName} hello={greet.hello} phrase={greet.phrase} next={null} />
         {alerts}
-        <section className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-line-strong bg-surface px-6 py-12 text-center">
-          <CompassIcon className="h-12 w-12 text-faint" />
-          <h2 className="section-title">Nenhuma viagem por aqui ainda</h2>
-          <p className="max-w-sm text-muted">
-            Cria sua primeira viagem e manda o link pro grupo. Leva poucos minutos. Os números das
-            suas viagens aparecem aqui depois.
-          </p>
-          <Link href="/painel/viagens/nova" className="btn-primary">
-            + Criar viagem
-          </Link>
-        </section>
       </div>
     );
   }

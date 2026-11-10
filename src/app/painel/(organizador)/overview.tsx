@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { BarList } from "@/components/charts/bar-list";
 import { TimeSeries } from "@/components/charts/time-series";
-import { Kpi, Occupancy, PeriodPicker, Snapshot } from "@/components/stats";
+import { CockpitHero, FuelCard, Gauge, Odometer, roadGreeting } from "@/components/cockpit";
+import { Kpi, Occupancy, PeriodPicker } from "@/components/stats";
 import { formatBRL, formatDateBR, formatDateRangeBR } from "@/lib/format";
 import type { OrganizerOverview as Overview } from "@/lib/organizer-stats";
 import { PERIODS, type PeriodKey } from "@/lib/periods";
 import { STATUS_LABELS } from "@/lib/trips";
 
-const nf = new Intl.NumberFormat("pt-BR");
 
 /** Visão geral do organizador: só as viagens e inscrições dele. */
 export function OrganizerOverview({
@@ -25,24 +25,14 @@ export function OrganizerOverview({
   const p = o.previous;
   const hasMoney = o.upcoming.some((u) => u.fixed) || t.value_cents > 0;
   const occupancy = o.now.seats > 0 ? Math.round((o.now.filled / o.now.seats) * 100) : null;
+  const greet = roadGreeting();
+  // A próxima saída de verdade (publicada ou encerrada); se só houver rascunho, ele.
+  const next = o.upcoming.find((u) => u.status !== "draft") ?? o.upcoming[0] ?? null;
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="page-title">E aí, {firstName}!</h1>
-          <p className="text-sm text-muted">
-            {formatDateBR(o.from)} a {formatDateBR(o.to)} · comparado com os{" "}
-            {PERIODS[period].label} anteriores
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <PeriodPicker current={period} href={(key) => `/painel?periodo=${key}`} />
-          <Link href="/painel/viagens/nova" className="btn-primary">
-            + Criar viagem
-          </Link>
-        </div>
-      </div>
+      <h1 className="sr-only">Visão geral</h1>
+      <CockpitHero firstName={firstName} hello={greet.hello} phrase={greet.phrase} next={next} />
 
       {alerts}
 
@@ -67,31 +57,33 @@ export function OrganizerOverview({
       )}
 
       <section className="space-y-3">
-        <h2 className="section-title">Agora</h2>
-        <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          <Snapshot label="Viagens abertas" value={nf.format(o.now.open_trips)} />
-          <Snapshot
+        <div className="space-y-0.5">
+          <h2 className="section-title">Painel de instrumentos</h2>
+          <p className="text-sm text-muted">Como estão as viagens que ainda vão acontecer.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 [&>*:nth-child(n+3)]:col-span-2 sm:[&>*:nth-child(n+3)]:col-span-1">
+          <Gauge
             label="Vagas preenchidas"
-            value={occupancy === null ? "—" : `${occupancy}%`}
-            hint={o.now.seats > 0 ? `${o.now.filled} de ${o.now.seats}` : "nenhuma viagem aberta"}
+            value={occupancy === null ? null : o.now.filled / o.now.seats}
+            hint={o.now.seats > 0 ? `${o.now.filled} de ${o.now.seats} nas viagens abertas` : "nenhuma viagem aberta"}
           />
-          <Snapshot label="Na fila de espera" value={nf.format(o.now.waitlist)} />
-          <Snapshot
-            label="Pagamentos"
-            value={o.now.confirmed > 0 ? `${Math.round((o.now.paid / o.now.confirmed) * 100)}%` : "—"}
-            hint={`${o.now.paid} de ${o.now.confirmed} confirmados`}
+          <Gauge
+            label="Pagamentos em dia"
+            value={o.now.confirmed > 0 ? o.now.paid / o.now.confirmed : null}
+            hint={`${o.now.paid} de ${o.now.confirmed} confirmados já pagaram`}
           />
-          <Snapshot
-            label="A receber"
-            value={formatBRL(o.now.to_receive_cents)}
-            hint={`${formatBRL(o.now.received_cents)} já pago`}
+          <FuelCard
+            toReceive={o.now.to_receive_cents}
+            received={o.now.received_cents}
+            openTrips={o.now.open_trips}
+            waitlist={o.now.waitlist}
           />
-          <Snapshot
-            label="Participantes"
-            value={nf.format(o.now.participants)}
-            hint="pessoas diferentes, desde o início"
+          <Odometer
+            label="Gente que já rodou com você"
+            value={o.now.participants}
+            hint="pessoas diferentes, desde a primeira viagem"
           />
-        </dl>
+        </div>
         {hasMoney && (
           <p className="text-xs text-muted">
             Valores das viagens de valor fixo que ainda não aconteceram. Rateio não entra na conta.
@@ -119,7 +111,16 @@ export function OrganizerOverview({
       </section>
 
       <section className="space-y-3">
-        <h2 className="section-title">No período</h2>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="space-y-0.5">
+            <h2 className="section-title">No período</h2>
+            <p className="text-sm text-muted">
+              {formatDateBR(o.from)} a {formatDateBR(o.to)} · comparado com os{" "}
+              {PERIODS[period].label} anteriores
+            </p>
+          </div>
+          <PeriodPicker current={period} href={(key) => `/painel?periodo=${key}`} />
+        </div>
         <dl className="grid grid-cols-2 gap-3 md:grid-cols-3">
           <Kpi label="Inscrições" value={t.registrations} previous={p.registrations} />
           <Kpi label="Gente nova" value={t.new_participants} previous={p.new_participants} />

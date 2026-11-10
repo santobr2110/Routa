@@ -55,7 +55,9 @@ export function LoginForm() {
         </p>
       )}
 
-      <SubmitButton pendingText="Entrando…">Entrar</SubmitButton>
+      <SubmitButton pendingText="Entrando…" className="btn-primary w-full sm:w-full">
+        Entrar
+      </SubmitButton>
 
       <p className="text-center text-base">
         Primeira vez aqui?{" "}
