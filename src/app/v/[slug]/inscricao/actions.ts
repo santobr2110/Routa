@@ -3,6 +3,13 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { canonicalBrand, maxBikeYear, normalizePlate } from "@/lib/bikes";
+import {
+  convoyOn,
+  parseConvoyForm,
+  profileRpcArgs,
+  type ConvoyField,
+  type ConvoyProfile,
+} from "@/lib/convoy";
 import { emailEnabled, registrationEmail, sendEmail } from "@/lib/email";
 import { formatDateRangeBR, normalizeBrPhone } from "@/lib/format";
 import { getPublicTrip } from "@/lib/public-trip";
@@ -27,6 +34,7 @@ export type RegisterField =
   | "terms";
 
 export type RegisterValues = Record<RegisterField, string>;
+type ErrorKey = RegisterField | ConvoyField | "form";
 
 /** O que register_for_trip devolve. Chave Pix e WhatsApp do organizador só para confirmados. */
 export type RegisterResult = {
@@ -47,8 +55,10 @@ export type RegisterResult = {
 };
 
 export type RegisterState = {
-  errors?: Partial<Record<RegisterField | "form", string>>;
+  errors?: Partial<Record<ErrorKey, string>>;
   values?: RegisterValues;
+  /** Respostas do Raio-X, para preencher de novo quando há erro. */
+  convoy?: ConvoyProfile;
   result?: RegisterResult;
   /** Muda a cada envio, para o anti-robô gerar um token novo (cada token vale uma vez). */
   attempt?: number;
@@ -75,7 +85,7 @@ const personName = z.string().trim().min(2).max(80);
 const RETRY = "Não deu para enviar agora. Recarrega a página e tenta de novo.";
 
 /** Erros que a função do banco pode levantar, em português. */
-const DB_ERRORS: Record<string, Partial<Record<RegisterField | "form", string>>> = {
+const DB_ERRORS: Record<string, Partial<Record<ErrorKey, string>>> = {
   already_registered: {
     whatsapp: "Esse WhatsApp já está inscrito nesta viagem. Fala com o organizador se precisar mudar algo.",
   },
@@ -98,9 +108,20 @@ export async function registerForTrip(
   const values = Object.fromEntries(
     FIELDS.map((f) => [f, String(formData.get(f) ?? "")]),
   ) as RegisterValues;
-  const fail = (errors: RegisterState["errors"]): RegisterState => ({ errors, values, attempt });
+  // Raio-X do comboio: perguntas que o organizador ligou nesta viagem.
+  const publicTrip = await getPublicTrip(slug);
+  const convoySettings = convoyOn(publicTrip?.convoy) ? publicTrip!.convoy! : null;
+  const convoy = convoySettings
+    ? parseConvoyForm(formData, convoySettings, { brand: values.bike_brand, model: values.bike_model })
+    : null;
+  const fail = (errors: RegisterState["errors"]): RegisterState => ({
+    errors,
+    values,
+    attempt,
+    convoy: convoy?.profile,
+  });
 
-  const errors: RegisterState["errors"] = {};
+  const errors: RegisterState["errors"] = { ...convoy?.errors };
   const name = personName.safeParse(values.name);
   if (!name.success) errors.name = "Coloca seu nome (de 2 a 80 letras).";
   const whatsapp = normalizeBrPhone(values.whatsapp);
@@ -196,9 +217,18 @@ export async function registerForTrip(
   }
 
   const result = data as RegisterResult;
+  // Respostas do Raio-X: gravadas com o token do link pessoal. Se falhar, a inscrição vale
+  // e a pessoa completa depois pela página dela.
+  if (convoy && result.access_token) {
+    const { error: convoyError } = await supabase.rpc(
+      "save_convoy_profile",
+      profileRpcArgs(result.access_token, convoy.profile),
+    );
+    if (convoyError) console.error("save_convoy_profile", slug, convoyError);
+  }
   // E-mail com o link da página do inscrito (só se o serviço de e-mail estiver configurado).
   if (result.access_token && emailEnabled()) {
-    const trip = await getPublicTrip(slug);
+    const trip = publicTrip;
     if (trip) {
       const message = registrationEmail({
         name: name.data!,

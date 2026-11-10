@@ -31,6 +31,10 @@ export const TRIP_FIELDS = [
   "card_pillion_price",
   "payment_deadline_hours",
   "payment_deadline_action",
+  "convoy_range",
+  "convoy_experience",
+  "convoy_skills",
+  "longest_stretch_km",
   "terms_text",
 ] as const;
 

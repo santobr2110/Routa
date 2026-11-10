@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0014).
+// Escrito à mão a partir de supabase/migrations/ (até a 0016).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -119,6 +119,11 @@ export type Database = {
           deleted_by: string | null;
           deleted_by_admin: boolean;
           deleted_reason: string | null;
+          /** Raio-X do comboio (migration 0016): perguntas da inscrição e maior trecho sem posto. */
+          convoy_range: "off" | "optional" | "required";
+          convoy_experience: "off" | "optional" | "required";
+          convoy_skills: "off" | "optional" | "required";
+          longest_stretch_km: number | null;
         };
         Insert: {
           id?: string;
@@ -146,6 +151,10 @@ export type Database = {
           card_pillion_price_cents?: number | null;
           payment_deadline_hours?: number | null;
           payment_deadline_action?: "notify" | "release";
+          convoy_range?: "off" | "optional" | "required";
+          convoy_experience?: "off" | "optional" | "required";
+          convoy_skills?: "off" | "optional" | "required";
+          longest_stretch_km?: number | null;
           requires_plate?: boolean;
           level: TripLevel;
           terrain: TripTerrain;
@@ -167,6 +176,24 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      convoy_profiles: {
+        Row: {
+          registration_id: string;
+          range_km: number | null;
+          range_unknown: boolean;
+          experience: "first" | "some" | "experienced" | "veteran" | null;
+          offroad: "never" | "some" | "lots" | null;
+          skills: ("mechanic" | "first_aid" | "toolkit")[];
+          cc: number | null;
+          cc_band: "up_to_300" | "300_700" | "700_1000" | "over_1000" | null;
+          style: "street" | "trail" | "sport" | "custom" | "scooter" | "touring" | null;
+          updated_at: string;
+        };
+        // Só pela função save_convoy_profile.
+        Insert: never;
+        Update: never;
+        Relationships: [];
       };
       trip_updates: {
         Row: { id: string; trip_id: string; body: string; created_at: string };
@@ -384,6 +411,20 @@ export type Database = {
       };
       admin_delete_trip: { Args: { p_trip_id: string; p_reason: string }; Returns: undefined };
       admin_restore_trip: { Args: { p_trip_id: string }; Returns: undefined };
+      save_convoy_profile: {
+        Args: {
+          p_token: string;
+          p_range_km: number | null;
+          p_range_unknown: boolean;
+          p_experience: string | null;
+          p_offroad: string | null;
+          p_skills: string[];
+          p_cc: number | null;
+          p_cc_band: string | null;
+          p_style: string | null;
+        };
+        Returns: undefined;
+      };
       delete_trip: { Args: { p_trip_id: string }; Returns: undefined };
       restore_trip: { Args: { p_trip_id: string }; Returns: undefined };
       list_deleted_trips: { Args: Record<string, never>; Returns: Json };

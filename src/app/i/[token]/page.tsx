@@ -14,5 +14,5 @@ export default async function InscritoPage({ params }: PageProps<"/i/[token]">) 
   const { token } = await params;
   const page = await getRegistrationPage(token);
   if (!page) notFound();
-  return <RegistrationView page={page} />;
+  return <RegistrationView page={page} token={token} />;
 }

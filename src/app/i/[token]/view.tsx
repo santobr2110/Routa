@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { PaymentBox } from "@/components/payment-box";
+import { convoyOn } from "@/lib/convoy";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { clubThemeStyle } from "@/lib/club-colors";
+import { ConvoySection } from "./convoy-section";
 import { formatBRL, formatDateBR, formatDateRangeBR, formatDateTimeBR, formatDueBR, whatsappLink } from "@/lib/format";
 import type { RegistrationPage } from "@/lib/registration-page";
 import { photoUrl } from "@/lib/trips";
 
 /** Página do inscrito: vaga, pagamento, avisos e informações da viagem. */
-export function RegistrationView({ page }: { page: RegistrationPage }) {
+export function RegistrationView({ page, token }: { page: RegistrationPage; token: string }) {
   const { registration: r, trip, organizer, payment, updates } = page;
   const firstName = r.name.trim().split(/\s+/)[0];
   const club = organizer.club;
@@ -87,6 +89,14 @@ export function RegistrationView({ page }: { page: RegistrationPage }) {
                 hasPillion={r.has_pillion}
                 dueAt={r.payment_due_at}
                 card={payment.card}
+              />
+            )}
+
+            {r.status !== "cancelled" && !trip.deleted && convoyOn(page.convoy) && (
+              <ConvoySection
+                token={token}
+                convoy={page.convoy}
+                bike={{ brand: r.bike_brand ?? "", model: r.bike_model ?? "" }}
               />
             )}
 

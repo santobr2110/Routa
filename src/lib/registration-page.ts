@@ -1,4 +1,5 @@
 import { cache } from "react";
+import type { ConvoyProfile, ConvoySettings, ConvoySummary } from "@/lib/convoy";
 import { createClient } from "@/lib/supabase/server";
 
 /** Página do inscrito (migration 0013): o que get_registration_page devolve pelo token. */
@@ -12,6 +13,8 @@ export type RegistrationPage = {
     has_pillion: boolean;
     pillion_name: string | null;
     bike: string;
+    bike_brand: string | null;
+    bike_model: string | null;
     payment_status: "pending" | "paid";
     payment_due_at: string | null;
     released_at: string | null;
@@ -51,6 +54,12 @@ export type RegistrationPage = {
     card: { url: string; amount_cents: number | null } | null;
   } | null;
   updates: { id: string; body: string; created_at: string }[];
+  /** Raio-X do comboio (migration 0016). */
+  convoy?: ConvoySettings & {
+    can_edit: boolean;
+    profile: (ConvoyProfile & { updated_at: string }) | null;
+    summary: ConvoySummary | null;
+  };
 };
 
 /** Formato do token: 32 caracteres hexadecimais. */

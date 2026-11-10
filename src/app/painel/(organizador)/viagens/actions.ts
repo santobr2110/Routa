@@ -58,6 +58,10 @@ const ERRORS: Record<TripField, string> = {
     "Coloca o valor da dupla no cartão (igual ou maior que o do Pix), ou deixa vazio.",
   payment_deadline_hours: "Escolhe um prazo da lista.",
   payment_deadline_action: "Escolhe o que acontece quando o prazo vence.",
+  convoy_range: "Escolhe uma opção.",
+  convoy_experience: "Escolhe uma opção.",
+  convoy_skills: "Escolhe uma opção.",
+  longest_stretch_km: "Coloca os km do maior trecho sem posto (de 10 a 2000), ou deixa vazio.",
   terms_text: "O termo precisa ter pelo menos algumas linhas.",
 };
 
@@ -135,6 +139,17 @@ function parseTrip(formData: FormData) {
     values.payment_deadline_action || "notify",
   );
 
+  // Raio-X do comboio: perguntas da inscrição e maior trecho sem posto (opcional).
+  const mode = z.enum(["off", "optional", "required"]);
+  const convoy_range = check("convoy_range", mode, values.convoy_range || "optional");
+  const convoy_experience = check("convoy_experience", mode, values.convoy_experience || "optional");
+  const convoy_skills = check("convoy_skills", mode, values.convoy_skills || "optional");
+  const longest_stretch = check(
+    "longest_stretch_km",
+    z.union([z.literal(""), z.coerce.number().int().min(10).max(2000)]),
+    values.longest_stretch_km.replace(/\D/g, ""),
+  );
+
   // Cartão: link de pagamento do próprio organizador. Quem leva garupa paga outro valor,
   // então, no valor fixo com garupa, a dupla precisa de um link próprio.
   const card_enabled = values.card_enabled === "on";
@@ -197,6 +212,10 @@ function parseTrip(formData: FormData) {
     card_pillion_price_cents,
     payment_deadline_hours: payment_deadline_hours ? Number(payment_deadline_hours) : null,
     payment_deadline_action: payment_deadline_action ?? "notify",
+    convoy_range: convoy_range!,
+    convoy_experience: convoy_experience!,
+    convoy_skills: convoy_skills!,
+    longest_stretch_km: longest_stretch === "" || longest_stretch === undefined ? null : longest_stretch,
     terms_text: terms_text!,
   } satisfies Omit<TripInsert, "organizer_id" | "slug">;
 

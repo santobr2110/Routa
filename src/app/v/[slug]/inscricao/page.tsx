@@ -63,6 +63,7 @@ export default async function InscricaoPage({ params }: PageProps<"/v/[slug]/ins
               pillionPriceCents: trip.pillion_price_cents,
               acceptsPillion: trip.accepts_pillion,
               requiresPlate: trip.requires_plate ?? false,
+              convoy: trip.convoy ?? null,
               isFull: trip.spots_left === 0,
               termsText: trip.terms_text,
             }}

@@ -1,5 +1,6 @@
 "use client";
 
+import { QUESTION_MODES } from "@/lib/convoy";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import { PIX_KEY_LABELS, formatPixKey, parsePixKey } from "@/lib/pix";
@@ -267,6 +268,65 @@ export function TripForm({
             Ligue só se precisar (check-in, pousada, seguro). A placa só aparece
             para você e é apagada 90 dias depois da viagem.
           </p>
+        </div>
+      </Section>
+
+      <Section title="Raio-X do comboio">
+        <p className="text-sm text-muted">
+          Perguntas a mais na inscrição para você ver o perfil do grupo e receber alertas (autonomia
+          curta, primeira viagem, cilindradas muito diferentes). Cilindrada e estilo da moto a Routa
+          descobre pelo modelo. Os inscritos veem só um resumo, sem nomes.
+        </p>
+        <div>
+          <label htmlFor="longest_stretch_km" className="field-label">
+            Maior trecho sem posto <span className="font-normal text-muted">(opcional)</span>
+          </label>
+          <div className="relative mt-1.5 w-40">
+            <input
+              {...field("longest_stretch_km")}
+              type="number"
+              inputMode="numeric"
+              min={10}
+              max={2000}
+              placeholder="Ex.: 180"
+              className="field-input mt-0 pr-10"
+            />
+            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-muted">
+              km
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-muted">
+            A Routa avisa quem tem autonomia menor que esse trecho + 20% de margem.
+          </p>
+          {message("longest_stretch_km")}
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {(
+            [
+              ["convoy_range", "Autonomia da moto"],
+              ["convoy_experience", "Experiência (estrada e terra)"],
+              ["convoy_skills", "Mecânica, primeiros socorros e kit"],
+            ] as const
+          ).map(([name, label]) => (
+            <div key={name}>
+              <label htmlFor={name} className="field-label">
+                {label}
+              </label>
+              <select
+                id={name}
+                name={name}
+                defaultValue={values[name] || "optional"}
+                className="field-input"
+              >
+                {Object.entries(QUESTION_MODES).map(([k, text]) => (
+                  <option key={k} value={k}>
+                    {text}
+                  </option>
+                ))}
+              </select>
+              {message(name)}
+            </div>
+          ))}
         </div>
       </Section>
 

@@ -32,6 +32,13 @@ export default function PrivacidadePage() {
             guardamos a data em que você aceitou o termo de responsabilidade.
           </p>
           <p>
+            Se o organizador ligar o <strong>Raio-X do comboio</strong>, também perguntamos a
+            autonomia da moto, sua experiência em viagens (na estrada e na terra) e se você sabe
+            mecânica, primeiros socorros ou leva ferramentas. Só o organizador vê as suas
+            respostas; os outros inscritos veem apenas um resumo do grupo, com números e sem
+            nomes. Você pode mudar as respostas pelo seu link pessoal até o fim da viagem.
+          </p>
+          <p>
             <strong>Quem vê:</strong> só o organizador da viagem em que você se inscreveu. Esses
             dados não aparecem na página pública e não são mostrados a outros inscritos.
           </p>

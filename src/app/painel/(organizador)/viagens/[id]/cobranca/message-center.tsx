@@ -15,6 +15,8 @@ export type CenterTrip = {
   departureUrl: string | null;
   departureTime: string | null;
   acceptsCard: boolean;
+  /** Raio-X do comboio ligado (migration 0016). */
+  convoy: boolean;
 };
 
 export type CenterPerson = {
@@ -31,9 +33,11 @@ export type CenterPerson = {
   overdue: boolean;
   /** Link da página do inscrito (/i/{token}). */
   link: string;
+  /** Já respondeu o Raio-X do comboio. */
+  convoyAnswered: boolean;
 };
 
-type TemplateKey = "cobrar" | "vespera" | "aviso";
+export type TemplateKey = "cobrar" | "vespera" | "aviso" | "raiox";
 
 const TEMPLATES: Record<
   TemplateKey,
@@ -53,6 +57,11 @@ const TEMPLATES: Record<
     label: "Aviso ao grupo",
     description: "Todos os confirmados. Mudança de roteiro, horário, chuva… você escreve.",
     who: (p) => p.status === "confirmed",
+  },
+  raiox: {
+    label: "Pedir o Raio-X",
+    description: "Quem ainda não respondeu (confirmados e fila). Cada um responde pelo link pessoal.",
+    who: (p) => !p.convoyAnswered,
   },
 };
 
@@ -78,6 +87,13 @@ function defaultText(key: TemplateKey, trip: CenterTrip): string {
       "Tanque cheio, documentos em dia e capa de chuva na mala. Bora de cara pro vento!",
       "",
       "Tudo da viagem na sua página: {link}",
+    ].join("\n");
+  if (key === "raiox")
+    return [
+      `Oi, {nome}! Aqui é ${me}, da viagem ${trip.title} (${trip.dates}). 🏍️`,
+      "Pra montar um comboio seguro (paradas, ritmo e quem ajuda quem), responde rapidinho o Raio-X: autonomia da moto, experiência e o que você pode ajudar. Leva 1 minuto:",
+      "",
+      "{link}",
     ].join("\n");
   return `Oi, {nome}! Aqui é ${me}, da viagem ${trip.title}. \n\nTudo da viagem na sua página da inscrição: {link}`;
 }
@@ -130,17 +146,25 @@ const SENT_FORMAT = new Intl.DateTimeFormat("pt-BR", {
 export function MessageCenter({
   trip,
   people,
+  initialTemplate,
 }: {
   trip: CenterTrip;
   people: CenterPerson[];
+  initialTemplate?: TemplateKey;
 }) {
+  const keys = (Object.keys(TEMPLATES) as TemplateKey[]).filter((k) => k !== "raiox" || trip.convoy);
   const [template, setTemplate] = useState<TemplateKey>(
-    people.some(TEMPLATES.cobrar.who) ? "cobrar" : "vespera",
+    initialTemplate && keys.includes(initialTemplate)
+      ? initialTemplate
+      : people.some(TEMPLATES.cobrar.who)
+        ? "cobrar"
+        : "vespera",
   );
   const [texts, setTexts] = useState<Record<TemplateKey, string>>({
     cobrar: defaultText("cobrar", trip),
     vespera: defaultText("vespera", trip),
     aviso: defaultText("aviso", trip),
+    raiox: defaultText("raiox", trip),
   });
   const [splitValue, setSplitValue] = useState("");
   const [cursor, setCursor] = useState(0);
@@ -200,7 +224,7 @@ export function MessageCenter({
       <section className="space-y-4">
         <fieldset className="space-y-2">
           <legend className="field-label">Mensagem</legend>
-          {(Object.keys(TEMPLATES) as TemplateKey[]).map((key) => {
+          {keys.map((key) => {
             const count = people.filter(TEMPLATES[key].who).length;
             return (
               <label key={key} className="choice items-start">

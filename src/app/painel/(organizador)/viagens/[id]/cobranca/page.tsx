@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireOrganizer } from "@/lib/auth";
 import { formatBRL, formatDateRangeBR, formatDateTimeBR } from "@/lib/format";
+import { convoyOn } from "@/lib/convoy";
 import { amountDue, isOverdue } from "@/lib/registrations";
 import { registrationUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
@@ -12,16 +13,20 @@ import { UpdateForm } from "./update-form";
 
 export const metadata: Metadata = { title: "Cobrança e avisos" };
 
-export default async function CobrancaPage({ params }: PageProps<"/painel/viagens/[id]/cobranca">) {
+export default async function CobrancaPage({
+  params,
+  searchParams,
+}: PageProps<"/painel/viagens/[id]/cobranca">) {
   const { organizer } = await requireOrganizer();
   const { id } = await params;
+  const { modelo } = await searchParams;
 
   const supabase = await createClient();
   // O RLS só devolve a viagem e as inscrições do próprio organizador.
   const { data: trip } = await supabase
     .from("trips")
     .select(
-      "id, title, status, start_date, end_date, destination, pricing_mode, price_cents, pillion_price_cents, pix_key, departure_point, departure_point_url, departure_time, card_enabled, card_url, card_pillion_url, card_price_cents, card_pillion_price_cents",
+      "id, title, status, start_date, end_date, destination, pricing_mode, price_cents, pillion_price_cents, pix_key, departure_point, departure_point_url, departure_time, card_enabled, card_url, card_pillion_url, card_price_cents, card_pillion_price_cents, convoy_range, convoy_experience, convoy_skills",
     )
     .eq("id", id)
     .maybeSingle();
@@ -35,6 +40,15 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
     .order("queued_at")
     .order("created_at");
   if (error) throw error;
+
+  // Quem já respondeu o Raio-X do comboio.
+  const { data: answered } = regs.length
+    ? await supabase
+        .from("convoy_profiles")
+        .select("registration_id")
+        .in("registration_id", regs.map((r) => r.id))
+    : { data: [] };
+  const answeredIds = new Set((answered ?? []).map((a) => a.registration_id));
 
   const { data: updates } = await supabase
     .from("trip_updates")
@@ -66,6 +80,7 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
     dueAt: r.status === "confirmed" && r.payment_status === "pending" ? r.payment_due_at : null,
     overdue: isOverdue(r),
     link: registrationUrl(r.access_token),
+    convoyAnswered: answeredIds.has(r.id),
   }));
   const pending = people.filter((p) => p.status === "confirmed" && !p.paid);
   const pendingCents = pending.reduce((s, p) => s + (p.amountCents ?? 0), 0);
@@ -126,8 +141,15 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
           departureUrl: trip.departure_point_url,
           departureTime: trip.departure_time,
           acceptsCard: trip.card_enabled && !!trip.card_url,
+          convoy: convoyOn({
+            range: trip.convoy_range,
+            experience: trip.convoy_experience,
+            skills: trip.convoy_skills,
+            longest_stretch_km: null,
+          }),
         }}
         people={people}
+        initialTemplate={modelo === "raiox" ? "raiox" : undefined}
       />
     </div>
   );

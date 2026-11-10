@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import { ConvoyFields } from "@/components/convoy-fields";
 import { SubmitButton } from "@/components/submit-button";
 import { Turnstile } from "@/components/turnstile";
 import { BIKE_BRANDS, maxBikeYear, modelsFor } from "@/lib/bikes";
+import { convoyOn, type ConvoySettings } from "@/lib/convoy";
 import { formatBRL } from "@/lib/format";
 import type { PricingMode } from "@/types/database";
 import {
@@ -23,6 +25,8 @@ export type FormTrip = {
   pillionPriceCents: number | null;
   acceptsPillion: boolean;
   requiresPlate: boolean;
+  /** Raio-X do comboio (null = desligado). */
+  convoy: ConvoySettings | null;
   isFull: boolean;
   termsText: string;
 };
@@ -59,6 +63,7 @@ export function RegistrationForm({
   const errors = state.errors ?? {};
   const [hasPillion, setHasPillion] = useState(values.has_pillion === "yes");
   const [brand, setBrand] = useState(values.bike_brand);
+  const [model, setModel] = useState(values.bike_model);
   const models = modelsFor(brand);
 
   if (state.result) {
@@ -178,6 +183,7 @@ export function RegistrationForm({
               autoComplete="off"
               required
               maxLength={60}
+              onChange={(e) => setModel(e.target.value)}
             />
             <datalist id="bike-models">
               {models.map((m) => (
@@ -234,6 +240,15 @@ export function RegistrationForm({
           </div>
         )}
       </section>
+
+      {convoyOn(trip.convoy) && (
+        <ConvoyFields
+          settings={trip.convoy}
+          bike={{ brand, model }}
+          defaults={state.convoy}
+          errors={errors}
+        />
+      )}
 
       {trip.acceptsPillion ? (
         <section className="card space-y-5 p-4 sm:p-5">

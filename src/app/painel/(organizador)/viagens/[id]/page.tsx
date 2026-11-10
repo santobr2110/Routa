@@ -75,6 +75,10 @@ export default async function EditarViagemPage({
     payment_deadline_hours:
       trip.payment_deadline_hours === null ? "" : String(trip.payment_deadline_hours),
     payment_deadline_action: trip.payment_deadline_action,
+    convoy_range: trip.convoy_range,
+    convoy_experience: trip.convoy_experience,
+    convoy_skills: trip.convoy_skills,
+    longest_stretch_km: trip.longest_stretch_km === null ? "" : String(trip.longest_stretch_km),
     card_enabled: trip.card_enabled ? "on" : "",
     card_url: trip.card_url ?? "",
     card_pillion_url: trip.card_pillion_url ?? "",

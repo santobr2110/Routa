@@ -3,7 +3,7 @@ import { formatDateRangeBR } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/trips";
 import type { TripStatus } from "@/types/database";
 
-type Tab = "editar" | "inscritos" | "cobranca" | "numeros";
+type Tab = "editar" | "inscritos" | "cobranca" | "raiox" | "numeros";
 
 const STATUS_COLORS: Record<TripStatus, string> = {
   draft: "bg-surface-muted text-ink-soft",
@@ -11,7 +11,7 @@ const STATUS_COLORS: Record<TripStatus, string> = {
   closed: "bg-warn-soft text-warn",
 };
 
-/** Topo das telas de uma viagem: voltar, título, situação e abas Editar · Inscritos · Cobrança e avisos · Números. */
+/** Topo das telas de uma viagem: voltar, título, situação e abas Editar · Inscritos · Cobrança e avisos · Raio-X · Números. */
 export function TripHeader({
   trip,
   current,
@@ -36,6 +36,7 @@ export function TripHeader({
       href: `/painel/viagens/${trip.id}/inscritos`,
     },
     { key: "cobranca", label: "Cobrança e avisos", href: `/painel/viagens/${trip.id}/cobranca` },
+    { key: "raiox", label: "Raio-X", href: `/painel/viagens/${trip.id}/raiox` },
     { key: "numeros", label: "Números", href: `/painel/viagens/${trip.id}/numeros` },
   ];
   return (

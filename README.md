@@ -105,6 +105,8 @@ A inscrição é aberta (sem login), então ela tem três proteções contra ins
 
 8. **Aparência do site (migration `0015`):** cria o Site Settings (cor e fotos do login e do painel) e a foto do painel do organizador. Não precisa de nada além de rodar o arquivo. Antes de aplicar, o site segue com o visual padrão.
 
+9. **Raio-X do comboio (migration `0016`):** rode depois da `0015`. Cria as perguntas do Raio-X nas viagens e as respostas dos inscritos; não precisa de mais nada.
+
 
 ### 4. Instalar e rodar
 
@@ -137,6 +139,13 @@ Para revisar: abra o certificado, confira na consulta pública do Cadastur (http
 - Clubes com página ligada continuam com a cor deles nas páginas do clube e das viagens.
 - **Página do clube › Imagem do seu painel:** o organizador escolhe a foto da capa da própria visão geral (ou "Usar a capa do clube"). Salva na hora e vale mesmo com a página do clube desligada. Sem foto própria, usa a do admin; sem a do admin, a foto padrão da Routa.
 - **Tamanhos:** login 1920 × 1280 (mínimo 1600 px de largura); painel 1920 × 1080 (mínimo 1600 × 900); capa do clube 1920 × 640; logo 512 × 512. Fotos deitadas. A tela avisa quando a foto é vertical ou pequena, e o navegador reduz tudo para 1920 px antes de enviar.
+
+### 3.10. Raio-X do comboio
+
+- No formulário da viagem (seção **Raio-X do comboio**), o organizador informa o **maior trecho sem posto** e escolhe, para cada pergunta, se ela fica desligada, opcional (padrão) ou obrigatória: autonomia da moto, experiência (estrada e terra) e se sabe mecânica/primeiros socorros/leva kit.
+- Cilindrada e estilo vêm do modelo da moto (tabela em `src/lib/bike-specs.ts`); se o modelo não estiver lá, a inscrição pergunta a faixa.
+- A aba **Raio-X** de cada viagem mostra os alertas, o perfil do grupo e a ficha de cada confirmado. Quem não respondeu pode responder pelo link pessoal; o modelo **Pedir o Raio-X** na aba Cobrança e avisos manda o pedido pelo WhatsApp.
+- Os inscritos veem só um resumo do grupo, sem nomes. Precisa da migration `0016`.
 
 ### 3.8. Excluir viagem e lixeira
 

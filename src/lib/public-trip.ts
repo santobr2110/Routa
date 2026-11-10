@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { CadasturSeal } from "@/lib/cadastur";
+import type { ConvoySettings } from "@/lib/convoy";
 import type { PricingMode, TripLevel, TripStatus, TripTerrain } from "@/types/database";
 
 /** O que a função get_public_trip devolve (sem chave Pix e sem dados de inscritos). */
@@ -31,6 +32,8 @@ export type PublicTrip = {
   payment_deadline_hours?: number | null;
   /** Página do clube do organizador, se estiver no ar (migration 0012). */
   club?: { slug: string; name: string; logo_path: string | null; color: string | null } | null;
+  /** Raio-X do comboio: perguntas da inscrição (migration 0016). */
+  convoy?: ConvoySettings;
   /** A inscrição pede a placa da moto (migration 0006). */
   requires_plate: boolean;
   level: TripLevel;
