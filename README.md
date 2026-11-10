@@ -91,6 +91,13 @@ A inscrição é aberta (sem login), então ela tem três proteções contra ins
    select cron.schedule('routa-apagar-placas', '0 4 * * *', $$select public.purge_old_plates()$$);
    ```
 
+6. **Prazo de pagamento (migration `0011`):** nas viagens em que o organizador escolhe "Liberar a vaga sozinho", quem não pagou no prazo vai para o fim da lista de espera e o primeiro da fila sobe. Para isso rodar sozinho a cada 15 minutos (com o pg_cron já ligado no passo acima), rode no SQL Editor:
+
+   ```sql
+   select cron.schedule('routa-prazos', '*/15 * * * *', $$select private.process_payment_deadlines()$$);
+   ```
+
+
 ### 4. Instalar e rodar
 
 ```bash
@@ -132,6 +139,7 @@ Dentro de cada viagem há as abas **Editar**, **Inscritos** e **Números**.
 - Quem garante a vaga vê um **QR Code Pix** e o botão **Copiar Pix copia e cola**, já com o valor exato (no rateio, sem valor). O dinheiro vai direto para a chave do organizador; a Routa só monta o código (padrão do Banco Central) e não cobra taxa.
 - No formulário da viagem, a chave Pix mostra como foi entendida (CPF, CNPJ, celular, e-mail ou aleatória). Para celular que também parece CPF, escreva com **+55**.
 - **Cartão de crédito (opcional, migration `0010`):** a Routa não processa cartão. Em **Pagamento**, marque "Aceitar cartão de crédito" e cole o link de pagamento criado na sua conta (Mercado Pago, InfinitePay, PagBank…): um para piloto e, se aceita garupa, outro para a dupla. Pode colocar um valor maior no cartão para repassar a taxa. O link só aparece para quem garantiu a vaga.
+- **Prazo para pagar (opcional, migration `0011`):** em **Pagamento**, escolha um prazo (24h, 48h, 3 dias ou 5 dias, nunca depois da véspera da saída) e o que acontece quando vence: **só avisar** (você libera a vaga com um clique na aba Inscritos) ou **liberar sozinho**. Liberar = quem não pagou vai para o fim da lista de espera e o primeiro da fila sobe. Sem ninguém na fila, a vaga continua com a pessoa.
 - Em cada viagem, a aba **Cobrança e avisos** monta as mensagens de WhatsApp: cobrar quem não pagou (com o Pix de cada um), lembrete da véspera e aviso ao grupo, uma pessoa por clique. Quando o Pix cair, marque como pago na aba **Inscritos**.
 
 ### 3.3. Área de administração

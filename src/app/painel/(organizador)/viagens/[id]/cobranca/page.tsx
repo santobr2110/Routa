@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireOrganizer } from "@/lib/auth";
 import { formatBRL, formatDateRangeBR } from "@/lib/format";
-import { amountDue } from "@/lib/registrations";
+import { amountDue, isOverdue } from "@/lib/registrations";
 import { createClient } from "@/lib/supabase/server";
 import { TripHeader } from "../../trip-header";
 import { MessageCenter, type CenterPerson } from "./message-center";
@@ -26,9 +26,10 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
 
   const { data: regs, error } = await supabase
     .from("registrations")
-    .select("id, name, whatsapp, has_pillion, status, payment_status")
+    .select("id, name, whatsapp, has_pillion, status, payment_status, payment_due_at")
     .eq("trip_id", trip.id)
     .neq("status", "cancelled")
+    .order("queued_at")
     .order("created_at");
   if (error) throw error;
 
@@ -53,6 +54,8 @@ export default async function CobrancaPage({ params }: PageProps<"/painel/viagen
     paid: r.payment_status === "paid",
     amountCents: amountDue(trip, r.has_pillion),
     card: cardFor(r.has_pillion),
+    dueAt: r.status === "confirmed" && r.payment_status === "pending" ? r.payment_due_at : null,
+    overdue: isOverdue(r),
   }));
   const pending = people.filter((p) => p.status === "confirmed" && !p.paid);
   const pendingCents = pending.reduce((s, p) => s + (p.amountCents ?? 0), 0);

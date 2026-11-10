@@ -27,6 +27,8 @@ export type PublicTrip = {
   /** Valor no cartão (já com o padrão = valor do Pix); null se não aceita ou no rateio. */
   card_price_cents?: number | null;
   card_pillion_price_cents?: number | null;
+  /** Prazo para pagar depois de garantir a vaga, em horas (migration 0011). */
+  payment_deadline_hours?: number | null;
   /** A inscrição pede a placa da moto (migration 0006). */
   requires_plate: boolean;
   level: TripLevel;

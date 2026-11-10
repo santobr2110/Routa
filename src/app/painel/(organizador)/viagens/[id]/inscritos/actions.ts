@@ -70,3 +70,26 @@ export async function cancelRegistration(tripId: string, registrationId: string)
   revalidatePath(page);
   redirect(promoted.length ? `${page}?promovido=${promoted.join(",")}` : `${page}?removido=1`);
 }
+
+/**
+ * Libera a vaga de quem venceu o prazo de pagamento: a pessoa vai para o fim da lista de
+ * espera e o primeiro da fila sobe. Volta para a lista com os dois avisos prontos.
+ */
+export async function releaseRegistration(tripId: string, registrationId: string) {
+  await requireOrganizer();
+  const supabase = await createClient();
+  const page = `/painel/viagens/${tripId}/inscritos`;
+
+  const { data, error } = await supabase.rpc("release_overdue_registration", {
+    p_registration_id: registrationId,
+  });
+  if (error) {
+    console.error("release_overdue_registration", registrationId, error);
+    redirect(`${page}?erro=liberar`);
+  }
+  const { promoted } = data as { released: string; promoted: string };
+
+  revalidatePath("/painel");
+  revalidatePath(page);
+  redirect(`${page}?liberado=${registrationId}&promovido=${promoted}`);
+}

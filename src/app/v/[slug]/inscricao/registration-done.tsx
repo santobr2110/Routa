@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { CopyButton, PixQr } from "@/components/pix-qr";
-import { formatBRL, whatsappLink } from "@/lib/format";
+import { formatBRL, formatDueBR, whatsappLink } from "@/lib/format";
 import { PIX_KEY_LABELS as PIX_KEY_LABEL, formatPixKey, parsePixKey, pixPayload, pixTxid } from "@/lib/pix";
 import type { RegisterResult } from "./actions";
 import type { FormTrip } from "./registration-form";
@@ -114,6 +114,12 @@ export function RegistrationDone({
               )}
               <CopyButton text={parsedKey?.value ?? pixKey} label="Copiar só a chave" copiedLabel="Chave copiada! ✅" />
             </div>
+            {result.payment_due_at && (
+              <p className="rounded-lg bg-warn-soft px-3 py-2 text-sm font-medium text-warn">
+                Pague até {formatDueBR(result.payment_due_at)}. Depois disso, a vaga pode ir para
+                quem está na lista de espera.
+              </p>
+            )}
             {pixCode && (
               <p className="text-xs text-muted">
                 No app do banco: Pix → Pix copia e cola → cole o código.

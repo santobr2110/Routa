@@ -56,6 +56,8 @@ const ERRORS: Record<TripField, string> = {
   card_price: "Coloca o valor no cartão, ex.: 470 ou 1.250,00 (igual ou maior que o do Pix), ou deixa vazio.",
   card_pillion_price:
     "Coloca o valor da dupla no cartão (igual ou maior que o do Pix), ou deixa vazio.",
+  payment_deadline_hours: "Escolhe um prazo da lista.",
+  payment_deadline_action: "Escolhe o que acontece quando o prazo vence.",
   terms_text: "O termo precisa ter pelo menos algumas linhas.",
 };
 
@@ -121,6 +123,18 @@ function parseTrip(formData: FormData) {
   );
   const terms_text = check("terms_text", z.string().trim().min(20).max(10000), values.terms_text);
 
+  // Prazo para pagar: vazio = sem prazo. A ação só importa com prazo.
+  const payment_deadline_hours = check(
+    "payment_deadline_hours",
+    z.union([z.literal(""), z.enum(["24", "48", "72", "120"])]),
+    values.payment_deadline_hours,
+  );
+  const payment_deadline_action = check(
+    "payment_deadline_action",
+    z.enum(["notify", "release"]),
+    values.payment_deadline_action || "notify",
+  );
+
   // Cartão: link de pagamento do próprio organizador. Quem leva garupa paga outro valor,
   // então, no valor fixo com garupa, a dupla precisa de um link próprio.
   const card_enabled = values.card_enabled === "on";
@@ -181,6 +195,8 @@ function parseTrip(formData: FormData) {
     card_pillion_url,
     card_price_cents,
     card_pillion_price_cents,
+    payment_deadline_hours: payment_deadline_hours ? Number(payment_deadline_hours) : null,
+    payment_deadline_action: payment_deadline_action ?? "notify",
     terms_text: terms_text!,
   } satisfies Omit<TripInsert, "organizer_id" | "slug">;
 

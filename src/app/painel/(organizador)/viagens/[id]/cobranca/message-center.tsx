@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { formatBRL, formatBrPhone, parseBRL, whatsappLink } from "@/lib/format";
+import { formatBRL, formatBrPhone, formatDueBR, parseBRL, whatsappLink } from "@/lib/format";
 import { pixPayload, pixTxid } from "@/lib/pix";
 
 export type CenterTrip = {
@@ -26,6 +26,9 @@ export type CenterPerson = {
   amountCents: number | null;
   /** Link de cartão desta pessoa (piloto ou dupla) e o valor no cartão, se aceita cartão. */
   card: { url: string; amountCents: number | null } | null;
+  /** Prazo para pagar (ISO) e se já venceu. */
+  dueAt: string | null;
+  overdue: boolean;
 };
 
 type TemplateKey = "cobrar" | "vespera" | "aviso";
@@ -56,7 +59,7 @@ function defaultText(key: TemplateKey, trip: CenterTrip): string {
   if (key === "cobrar")
     return [
       `Oi, {nome}! Aqui é ${me}, da viagem ${trip.title} (${trip.dates}).`,
-      "Falta só o Pix da sua vaga{valor}. É só copiar o código abaixo e colar no app do banco, em Pix copia e cola:",
+      "Falta só o Pix da sua vaga{valor}{prazo}. É só copiar o código abaixo e colar no app do banco, em Pix copia e cola:",
       "",
       "{pix}",
       "",
@@ -162,6 +165,10 @@ export function MessageCenter({
       .replaceAll("{valor}", amount ? ` (${formatBRL(amount)})` : "")
       .replaceAll("{pix}", pix)
       .replaceAll(
+        "{prazo}",
+        p.dueAt ? (p.overdue ? ` (o prazo era ${formatDueBR(p.dueAt)})` : `, até ${formatDueBR(p.dueAt)}`) : "",
+      )
+      .replaceAll(
         "{cartao}",
         p.card
           ? `${p.card.amountCents ? `${formatBRL(p.card.amountCents)} por este link: ` : "É por este link: "}${p.card.url}`
@@ -242,7 +249,7 @@ export function MessageCenter({
           <p className="field-hint">
             {"{nome}"} vira o primeiro nome de cada pessoa
             {template === "cobrar" &&
-              `, {valor} o valor dela e {pix} o Pix copia e cola com o valor certo${trip.acceptsCard ? ", {cartao} o link do cartão com o valor no cartão" : ""}`}
+              `, {valor} o valor dela, {prazo} o prazo dela, {pix} o Pix copia e cola com o valor certo${trip.acceptsCard ? ", {cartao} o link do cartão com o valor no cartão" : ""}`}
             .{" "}
             <button
               type="button"
@@ -326,6 +333,7 @@ export function MessageCenter({
                         {formatBrPhone(p.whatsapp)}
                         {template === "cobrar" && trip.fixed && p.amountCents !== null &&
                           ` · ${formatBRL(p.amountCents)}`}
+                        {template === "cobrar" && p.overdue && " · prazo vencido"}
                         {at && ` · enviada ${SENT_FORMAT.format(at)}`}
                       </p>
                     </div>

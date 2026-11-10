@@ -5,7 +5,7 @@
  * não há nada de segurança: só contas. Funções puras, sem acesso ao banco.
  * Datas sempre no fuso de Brasília.
  */
-import { amountDue } from "./registrations";
+import { amountDue, isOverdue } from "./registrations";
 import { PERIODS, type Bucket, type PeriodKey } from "./periods";
 import type { Database } from "@/types/database";
 
@@ -41,12 +41,13 @@ export type StatsReg = Pick<
   | "payment_status"
   | "created_at"
   | "cancelled_at"
+  | "payment_due_at"
 >;
 
 export const STATS_TRIP_COLUMNS =
   "id, title, destination, start_date, end_date, status, capacity, pricing_mode, price_cents, pillion_price_cents, created_at, admin_hidden_at" as const;
 export const STATS_REG_COLUMNS =
-  "id, trip_id, name, whatsapp, bike, bike_brand, bike_model, has_pillion, status, payment_status, created_at, cancelled_at" as const;
+  "id, trip_id, name, whatsapp, bike, bike_brand, bike_model, has_pillion, status, payment_status, created_at, cancelled_at, payment_due_at" as const;
 
 export type KeyValue = { key: string; value: number };
 
@@ -197,6 +198,7 @@ export type UpcomingTrip = {
   confirmed: number;
   waitlist: number;
   paid: number;
+  overdue: number;
   fixed: boolean;
   value_cents: number;
   paid_cents: number;
@@ -296,6 +298,7 @@ export function organizerOverview(
         confirmed: confirmed.length,
         waitlist: tr.filter((r) => r.status === "waitlist").length,
         paid: paid.length,
+        overdue: confirmed.filter((r) => isOverdue(r, now.getTime())).length,
         fixed: t.pricing_mode === "fixed",
         value_cents: confirmed.reduce((s, r) => s + amountOf(r, tripsById), 0),
         paid_cents: paid.reduce((s, r) => s + amountOf(r, tripsById), 0),

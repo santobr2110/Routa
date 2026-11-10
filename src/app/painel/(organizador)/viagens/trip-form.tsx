@@ -6,6 +6,7 @@ import { PIX_KEY_LABELS, formatPixKey, parsePixKey } from "@/lib/pix";
 import {
   LEVEL_LABELS,
   TERRAIN_LABELS,
+  PAYMENT_DEADLINES,
   type TripField,
   type TripFormState,
   type TripFormValues,
@@ -71,6 +72,7 @@ export function TripForm({
   const errors = state.errors ?? {};
   const [pricingMode, setPricingMode] = useState(values.pricing_mode);
   const [cardEnabled, setCardEnabled] = useState(values.card_enabled === "on");
+  const [deadline, setDeadline] = useState(values.payment_deadline_hours);
 
   /** Props de acessibilidade e erro comuns a todos os campos. */
   const field = (name: TripField) => ({
@@ -321,6 +323,64 @@ export function TripForm({
           field={field("pix_key")}
           error={message("pix_key")}
         />
+
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div>
+            <label htmlFor="payment_deadline_hours" className="field-label">
+              Prazo para pagar
+            </label>
+            <select
+              {...field("payment_deadline_hours")}
+              defaultValue={undefined}
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              className="field-input"
+            >
+              {Object.entries(PAYMENT_DEADLINES).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            {message("payment_deadline_hours") ?? (
+              <p id="payment_deadline_hours-hint" className="field-hint">
+                Conta a partir de quando a pessoa garante a vaga (ou sobe da fila). Nunca passa da
+                véspera da saída.
+              </p>
+            )}
+          </div>
+          {deadline && (
+            <fieldset>
+              <legend className="field-label">Quando o prazo vencer</legend>
+              <div className="mt-1.5 grid gap-2">
+                <label className="choice">
+                  <input
+                    type="radio"
+                    name="payment_deadline_action"
+                    value="notify"
+                    defaultChecked={values.payment_deadline_action !== "release"}
+                    className="h-4 w-4 accent-brand"
+                  />
+                  Só me avisar (eu libero a vaga com um clique)
+                </label>
+                <label className="choice">
+                  <input
+                    type="radio"
+                    name="payment_deadline_action"
+                    value="release"
+                    defaultChecked={values.payment_deadline_action === "release"}
+                    className="h-4 w-4 accent-brand"
+                  />
+                  Liberar a vaga sozinho
+                </label>
+              </div>
+              <p className="field-hint">
+                Liberar: quem não pagou vai para o fim da lista de espera e o primeiro da fila
+                sobe. Só acontece se tiver alguém esperando.
+              </p>
+            </fieldset>
+          )}
+        </div>
 
         <div className="space-y-4">
           <div>

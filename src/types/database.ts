@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0010).
+// Escrito à mão a partir de supabase/migrations/ (até a 0011).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -74,6 +74,9 @@ export type Database = {
           card_pillion_url: string | null;
           card_price_cents: number | null;
           card_pillion_price_cents: number | null;
+          /** Prazo para pagar depois de confirmar, em horas (migration 0011). */
+          payment_deadline_hours: number | null;
+          payment_deadline_action: "notify" | "release";
           requires_plate: boolean;
           level: TripLevel;
           terrain: TripTerrain;
@@ -112,6 +115,8 @@ export type Database = {
           card_pillion_url?: string | null;
           card_price_cents?: number | null;
           card_pillion_price_cents?: number | null;
+          payment_deadline_hours?: number | null;
+          payment_deadline_action?: "notify" | "release";
           requires_plate?: boolean;
           level: TripLevel;
           terrain: TripTerrain;
@@ -189,6 +194,13 @@ export type Database = {
           status: RegistrationStatus;
           cancelled_at: string | null;
           created_at: string;
+          /** Ordem da lista de espera (migration 0011). */
+          queued_at: string;
+          /** Prazo para pagar de quem está confirmado; null = sem prazo. */
+          payment_due_at: string | null;
+          /** Quando subiu da lista de espera / perdeu a vaga por prazo. */
+          promoted_at: string | null;
+          released_at: string | null;
         };
         // Inscrição só pela função register_for_trip.
         Insert: never;
@@ -329,6 +341,10 @@ export type Database = {
       cancel_registration: {
         Args: { p_registration_id: string };
         Returns: undefined;
+      };
+      release_overdue_registration: {
+        Args: { p_registration_id: string };
+        Returns: Json;
       };
     };
     Enums: { [_ in never]: never };

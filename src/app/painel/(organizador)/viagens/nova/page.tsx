@@ -30,6 +30,8 @@ const EMPTY: TripFormValues = {
   requires_plate: "",
   pix_key: "",
   card_enabled: "",
+  payment_deadline_hours: "",
+  payment_deadline_action: "notify",
   card_url: "",
   card_pillion_url: "",
   card_price: "",

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CompassIcon, Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { formatBRL, formatDateBR, formatDateRangeBR, formatDateTimeBR } from "@/lib/format";
+import { deadlineText, formatBRL, formatDateBR, formatDateRangeBR, formatDateTimeBR } from "@/lib/format";
 import type { PublicTrip } from "@/lib/public-trip";
 import { LEVEL_LABELS, TERRAIN_LABELS, photoUrl } from "@/lib/trips";
 
@@ -276,6 +276,13 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 /** "Pix" ou "Pix ou cartão", com o valor no cartão quando for diferente. */
 function paymentText(trip: PublicTrip): string {
+  const deadline = trip.payment_deadline_hours
+    ? ` Pague em até ${deadlineText(trip.payment_deadline_hours)} depois de garantir a vaga.`
+    : "";
+  return methodsText(trip) + deadline;
+}
+
+function methodsText(trip: PublicTrip): string {
   if (!trip.accepts_card) return "Pagamento por Pix.";
   const solo =
     trip.card_price_cents && trip.price_cents !== null && trip.card_price_cents !== trip.price_cents

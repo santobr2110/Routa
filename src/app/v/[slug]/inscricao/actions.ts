@@ -37,6 +37,8 @@ export type RegisterResult = {
   organizer_whatsapp: string | null;
   /** Link de pagamento com cartão do organizador (migration 0010), só para confirmados. */
   card?: { url: string; amount_cents: number | null } | null;
+  /** Prazo para pagar (migration 0011), só para confirmados em viagem com prazo. */
+  payment_due_at?: string | null;
 };
 
 export type RegisterState = {

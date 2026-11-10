@@ -29,6 +29,8 @@ export const TRIP_FIELDS = [
   "card_pillion_url",
   "card_price",
   "card_pillion_price",
+  "payment_deadline_hours",
+  "payment_deadline_action",
   "terms_text",
 ] as const;
 
@@ -82,3 +84,12 @@ export function photoUrl(storagePath: string): string {
 export function shareMessage(destination: string, dates: string, link: string): string {
   return `🧭 Bora pra ${destination}? ${dates}. Garante sua vaga 👉 ${link}`;
 }
+
+/** Prazos de pagamento que o organizador pode escolher (horas). */
+export const PAYMENT_DEADLINES: Record<string, string> = {
+  "": "Sem prazo",
+  "24": "24 horas",
+  "48": "48 horas",
+  "72": "3 dias",
+  "120": "5 dias",
+};

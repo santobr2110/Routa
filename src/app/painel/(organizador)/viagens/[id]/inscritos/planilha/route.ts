@@ -26,6 +26,7 @@ export async function GET(
     .select(REGISTRATION_COLUMNS)
     .eq("trip_id", id)
     .neq("status", "cancelled")
+    .order("queued_at")
     .order("created_at");
   if (error) return new Response("Erro ao gerar a planilha", { status: 500 });
 

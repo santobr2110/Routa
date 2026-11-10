@@ -84,3 +84,23 @@ export function formatDateTimeBR(iso: string): string {
     .format(new Date(iso))
     .replace(",", "");
 }
+
+/** Prazo no horário de Brasília: "qui., 12/11 às 18:30". */
+export function formatDueBR(iso: string): string {
+  const parts = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(new Date(iso));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("weekday")} ${get("day")}/${get("month")} às ${get("hour")}:${get("minute")}`;
+}
+
+/** Texto do prazo de pagamento em horas: 24 → "24 horas", 72 → "3 dias". */
+export function deadlineText(hours: number): string {
+  return hours % 24 === 0 && hours > 48 ? `${hours / 24} dias` : `${hours} horas`;
+}

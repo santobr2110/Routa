@@ -46,6 +46,26 @@ export function OrganizerOverview({
 
       {alerts}
 
+      {o.upcoming.some((t) => t.overdue > 0) && (
+        <div className="rounded-xl bg-warn-soft px-4 py-3 text-sm text-warn" role="note">
+          <p className="font-medium">Prazo de pagamento vencido</p>
+          <ul className="mt-1 space-y-0.5">
+            {o.upcoming
+              .filter((t) => t.overdue > 0)
+              .map((t) => (
+                <li key={t.id}>
+                  <Link
+                    href={`/painel/viagens/${t.id}/inscritos?filtro=vencidos`}
+                    className="underline"
+                  >
+                    {t.title}: {t.overdue} pessoa(s)
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
+
       <section className="space-y-3">
         <h2 className="section-title">Agora</h2>
         <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
@@ -225,6 +245,9 @@ function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
                 <td className="px-4 py-2.5 text-right tabular-nums">{t.waitlist}</td>
                 <td className="px-4 py-2.5 text-right tabular-nums">
                   {t.paid}/{t.confirmed}
+                  {t.overdue > 0 && (
+                    <span className="block text-xs text-danger">{t.overdue} vencido(s)</span>
+                  )}
                 </td>
                 <td className="px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
                   {t.paid < t.confirmed ? (
@@ -275,6 +298,7 @@ function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
               <Occupancy confirmed={t.confirmed} capacity={t.capacity} />
               <p className="text-xs text-ink-soft">
                 {t.waitlist} na fila · {t.paid}/{t.confirmed} pagos
+                {t.overdue > 0 && ` · ${t.overdue} com prazo vencido`}
                 {t.fixed && ` · ${formatBRL(t.value_cents - t.paid_cents)} a receber`}
               </p>
             </Link>
