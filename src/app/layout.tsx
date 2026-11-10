@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Geist } from "next/font/google";
 import { ThemeScript } from "@/components/theme-toggle";
 import { siteUrl } from "@/lib/site";
@@ -35,7 +36,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <ThemeScript />
       </head>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        {/* Visitas por página, sem cookies (Vercel Web Analytics). Ligue em Vercel > Analytics. */}
+        <Analytics />
+      </body>
     </html>
   );
 }

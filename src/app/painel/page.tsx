@@ -51,6 +51,14 @@ export default async function PainelPage() {
     <div className="space-y-8">
       <h1 className="text-3xl font-extrabold tracking-tight">E aí, {firstName}! 🏍️</h1>
 
+      {organizer.suspended_at && (
+        <p className="rounded-xl bg-danger-soft px-4 py-3 font-medium text-danger" role="alert">
+          🚫 Sua conta está suspensa pela administração da Routa. Suas viagens estão fora do ar e
+          você não pode criar nem editar viagens. Motivo: {organizer.suspended_reason}. Para falar
+          com a gente, responda o contato da Routa.
+        </p>
+      )}
+
       {sealWarning !== null && (
         <Link
           href="/painel/perfil"

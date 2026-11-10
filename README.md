@@ -116,6 +116,32 @@ on conflict do nothing;
 
 Para revisar: abra o certificado, confira na consulta pública do Cadastur (https://cadastur.turismo.gov.br/) se o CNPJ, o número e a validade batem, e clique em **Aprovar selo** ou **Recusar** (com motivo). O selo aparece nas viagens do organizador e some sozinho depois da data de validade.
 
+### 3.3. Área de administração
+
+Quem está em `private.admins` vê o link **Admin** no menu e acessa `/painel/admin`:
+
+- **Visão geral:** usuários, organizadores, viagens, inscrições, pagamentos, valores, ocupação, funil (conta → perfil → viagem → publicada → inscrição), gráficos das últimas 12 semanas e quem parou no caminho (com WhatsApp).
+- **Usuários:** busca por nome, e-mail ou WhatsApp; detalhe com viagens, selos e histórico; **suspender** (tira as viagens do ar, fecha inscrições, impede criar/editar viagens) e **reativar**.
+- **Viagens:** filtros por situação e data; detalhe com números e inscritos (sem dados sensíveis); **tirar do ar** e **pôr de volta**.
+- **Selos** (seção 3.2) e **Atividade:** o que aconteceu por último, log de auditoria (toda ação de admin, com quem fez e o motivo) e a lista de admins.
+
+**Adicionar outro admin** (SQL Editor):
+
+```sql
+insert into private.admins (user_id)
+select id from auth.users where lower(email) = lower('EMAIL-DA-PESSOA@exemplo.com')
+on conflict do nothing;
+```
+
+**Remover um admin:**
+
+```sql
+delete from private.admins
+where user_id = (select id from auth.users where lower(email) = lower('EMAIL-DA-PESSOA@exemplo.com'));
+```
+
+**Visitas por página:** o site já manda as visitas para o **Vercel Web Analytics** (sem cookies). Para ver, ligue em Vercel > projeto > **Analytics** > **Enable**.
+
 ## Comandos
 
 | Comando | Para quê |

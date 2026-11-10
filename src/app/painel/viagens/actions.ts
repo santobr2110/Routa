@@ -137,6 +137,8 @@ function parseTrip(formData: FormData) {
 }
 
 const FORM_ERROR = "Não deu para salvar agora. Tenta de novo.";
+const SUSPENDED_ERROR =
+  "Sua conta está suspensa pela administração da Routa: não dá para criar nem editar viagens.";
 
 export async function createTrip(_prev: TripFormState, formData: FormData): Promise<TripFormState> {
   const { user } = await requireOrganizer();
@@ -158,6 +160,9 @@ export async function createTrip(_prev: TripFormState, formData: FormData): Prom
     if (!error) {
       revalidatePath("/painel");
       redirect(`/painel/viagens/${data.id}?nova=1`);
+    }
+    if (error.message.includes("organizer_suspended")) {
+      return { errors: { form: SUSPENDED_ERROR }, values: parsed.values };
     }
     if (error.code !== "23505") break;
   }
@@ -191,6 +196,9 @@ export async function updateTrip(
     .single();
 
   if (error) {
+    if (error.message.includes("organizer_suspended")) {
+      return { errors: { form: SUSPENDED_ERROR }, values: parsed.values };
+    }
     if (error.message.includes("capacity_below_confirmed")) {
       return {
         errors: {

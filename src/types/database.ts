@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0007).
+// Escrito à mão a partir de supabase/migrations/ (até a 0008).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
@@ -31,6 +31,9 @@ export type Database = {
           name: string;
           whatsapp: string;
           created_at: string;
+          /** Suspenso pela administração (migration 0008). Só o admin altera. */
+          suspended_at: string | null;
+          suspended_reason: string | null;
         };
         Insert: {
           id: string;
@@ -76,6 +79,9 @@ export type Database = {
           status: TripStatus;
           created_at: string;
           updated_at: string;
+          /** Tirada do ar pela administração (migration 0008). Só o admin altera. */
+          admin_hidden_at: string | null;
+          admin_hidden_reason: string | null;
         };
         Insert: {
           id?: string;
@@ -277,6 +283,34 @@ export type Database = {
         Args: { p_id: string; p_approve: boolean; p_reason?: string | null };
         Returns: undefined;
       };
+      admin_dashboard: { Args: Record<string, never>; Returns: Json };
+      admin_list_users: {
+        Args: { p_search?: string | null; p_limit?: number; p_offset?: number };
+        Returns: Json;
+      };
+      admin_user_detail: { Args: { p_user_id: string }; Returns: Json };
+      admin_set_suspended: {
+        Args: { p_organizer_id: string; p_suspend: boolean; p_reason?: string | null };
+        Returns: undefined;
+      };
+      admin_list_trips: {
+        Args: {
+          p_search?: string | null;
+          p_status?: string;
+          p_period?: string;
+          p_limit?: number;
+          p_offset?: number;
+        };
+        Returns: Json;
+      };
+      admin_trip_detail: { Args: { p_trip_id: string }; Returns: Json };
+      admin_set_trip_hidden: {
+        Args: { p_trip_id: string; p_hide: boolean; p_reason?: string | null };
+        Returns: undefined;
+      };
+      admin_activity: { Args: { p_limit?: number }; Returns: Json };
+      admin_audit_log: { Args: { p_limit?: number }; Returns: Json };
+      admin_list_admins: { Args: Record<string, never>; Returns: Json };
       purge_old_plates: {
         Args: Record<string, never>;
         Returns: number;

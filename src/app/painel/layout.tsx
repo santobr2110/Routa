@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
-export default function PainelLayout({ children }: LayoutProps<"/painel">) {
+export default async function PainelLayout({ children }: LayoutProps<"/painel">) {
+  // Link de admin só para quem é admin (o banco confere de novo em cada página de admin).
+  const user = await getUser();
+  const isAdmin = user ? (await (await createClient()).rpc("is_admin")).data === true : false;
+
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-line bg-surface">
@@ -13,6 +19,14 @@ export default function PainelLayout({ children }: LayoutProps<"/painel">) {
           </Link>
           <nav className="flex items-center gap-1">
             <ThemeToggle />
+            {isAdmin && (
+              <Link
+                href="/painel/admin"
+                className="inline-flex min-h-12 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"
+              >
+                Admin
+              </Link>
+            )}
             <Link
               href="/painel/perfil"
               className="inline-flex min-h-12 items-center rounded-lg px-3 font-semibold text-ink-soft hover:bg-surface-muted"

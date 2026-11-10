@@ -25,7 +25,7 @@ export const getOrganizer = cache(async (userId: string) => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("organizers")
-    .select("id, name, whatsapp")
+    .select("id, name, whatsapp, suspended_at, suspended_reason")
     .eq("id", userId)
     .maybeSingle();
   if (error) throw error;

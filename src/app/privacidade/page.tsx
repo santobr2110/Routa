@@ -69,7 +69,9 @@ export default function PrivacidadePage() {
           </p>
           <p>
             Usamos só o necessário para o site funcionar: o cookie de login do organizador e a
-            sua escolha de modo claro ou escuro, salva no seu navegador.
+            sua escolha de modo claro ou escuro, salva no seu navegador. Para saber quais páginas
+            são mais visitadas, usamos o Vercel Web Analytics, que conta visitas sem cookies e sem
+            identificar você.
           </p>
         </Section>
 
