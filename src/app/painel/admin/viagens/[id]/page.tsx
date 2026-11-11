@@ -178,46 +178,47 @@ export default async function AdminViagemPage({
             {registrations.length === 0 ? (
               <p className="text-muted">Ninguém se inscreveu ainda.</p>
             ) : (
-              <div className="card overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-line bg-surface-muted/50 text-muted">
-                      <th className="px-4 py-2 font-medium">Nome</th>
-                      <th className="px-4 py-2 font-medium">Moto</th>
-                      <th className="px-4 py-2 font-medium">Situação</th>
-                      <th className="px-4 py-2 font-medium">Pagamento</th>
-                      <th className="px-4 py-2 font-medium">Inscrição</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {registrations.map((r, i) => (
-                      <tr key={i} className="border-b border-line last:border-0">
-                        <td className="px-4 py-2">
-                          {r.name}
-                          {r.has_pillion && (
-                            <span className="font-normal text-muted">
-                              {" "}
-                              + garupa
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-2">{r.bike}</td>
-                        <td className="px-4 py-2">{REG_STATUS[r.status]}</td>
-                        <td className="px-4 py-2">
-                          {r.status === "confirmed"
-                            ? r.payment_status === "paid"
-                              ? "Pago"
-                              : "Pendente"
-                            : "—"}
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-muted">
-                          {formatDateTimeBR(r.created_at)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ul className="card divide-y divide-line text-sm">
+                {registrations.map((r, i) => (
+                  <li
+                    key={i}
+                    className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1.5 px-4 py-3"
+                  >
+                    <div className="min-w-0 flex-1 basis-56">
+                      <p className="font-medium break-words">
+                        {r.name}
+                        {r.has_pillion && (
+                          <span className="font-normal text-muted"> + garupa</span>
+                        )}
+                      </p>
+                      <p className="break-words text-muted">{r.bike}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-start gap-1 sm:items-end">
+                      <div className="flex flex-wrap gap-1.5">
+                        <Badge
+                          tone={
+                            r.status === "confirmed"
+                              ? "success"
+                              : r.status === "waitlist"
+                                ? "warn"
+                                : "muted"
+                          }
+                        >
+                          {REG_STATUS[r.status]}
+                        </Badge>
+                        {r.status === "confirmed" && (
+                          <Badge tone={r.payment_status === "paid" ? "success" : "muted"}>
+                            {r.payment_status === "paid" ? "Pago" : "Pagamento pendente"}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted">
+                        Inscrição em {formatDateTimeBR(r.created_at)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 
