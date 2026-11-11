@@ -15,7 +15,7 @@ import type { TripLevel, TripTerrain } from "@/types/database";
 import { AuditList } from "../../audit-list";
 import { ReasonForm } from "../../reason-form";
 import { ResultMessage } from "../../result-message";
-import { Badge, Stat } from "../../stat";
+import { Badge, Meter } from "../../stat";
 import { DeleteTripForm } from "@/components/delete-trip-form";
 import { daysLeft } from "@/lib/trash";
 import { adminDeleteTrip, adminRestoreTrip, setTripHidden } from "./actions";
@@ -117,20 +117,54 @@ export default async function AdminViagemPage({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <div className="min-w-0 space-y-6">
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat
-              label="Confirmados"
+          <dl className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <Meter
+              label="Vagas"
               value={`${confirmed.length}/${trip.capacity}`}
-            />
-            <Stat label="Na fila" value={waitlist.length} />
-            <Stat label="Pagos" value={`${paid.length}/${confirmed.length}`} />
-            <Stat
-              label={fixed ? "Valor confirmado" : "Cancelados"}
-              value={fixed ? formatBRL(sum(confirmed)) : cancelled.length}
+              pct={trip.capacity > 0 ? confirmed.length / trip.capacity : 0}
               detail={
-                fixed ? `${formatBRL(sum(paid))} marcado como pago` : undefined
+                waitlist.length > 0
+                  ? `${waitlist.length} na fila de espera`
+                  : `${Math.max(trip.capacity - confirmed.length, 0)} livre(s)`
               }
             />
+            <Meter
+              label="Pagos"
+              value={`${paid.length}/${confirmed.length}`}
+              pct={confirmed.length > 0 ? paid.length / confirmed.length : 0}
+              detail={`${confirmed.length - paid.length} pendente(s) · ${cancelled.length} cancelado(s)`}
+              tone="success"
+            />
+            {fixed ? (
+              <div className="card min-w-0 p-4 col-span-2">
+                <dt className="text-sm text-muted">Valor dos confirmados</dt>
+                <dd className="mt-1 text-2xl font-semibold tracking-tight break-words tabular-nums">
+                  {formatBRL(sum(confirmed))}
+                </dd>
+                <dd className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3 text-sm">
+                  <span className="min-w-0">
+                    <span className="block text-xs text-muted">Marcado como pago</span>
+                    <span className="font-semibold break-words text-success tabular-nums">
+                      {formatBRL(sum(paid))}
+                    </span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-xs text-muted">Falta receber</span>
+                    <span className="font-semibold break-words tabular-nums">
+                      {formatBRL(sum(confirmed) - sum(paid))}
+                    </span>
+                  </span>
+                </dd>
+              </div>
+            ) : (
+              <div className="card min-w-0 p-4 col-span-2">
+                <dt className="text-sm text-muted">Valor</dt>
+                <dd className="mt-1 text-lg font-semibold">Rateio</dd>
+                <dd className="mt-1 text-sm text-muted">
+                  O valor é dividido entre o grupo depois da viagem.
+                </dd>
+              </div>
+            )}
           </dl>
 
           <section className="space-y-3">
@@ -283,3 +317,4 @@ export default async function AdminViagemPage({
     </div>
   );
 }
+
