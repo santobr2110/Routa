@@ -2,7 +2,7 @@
 --
 -- admin_list_trips passa a devolver o e-mail do organizador e o nome do clube (quando a
 -- página do clube está ligada), e a busca também procura por e-mail e nome do clube.
--- Cópia da versão da 0014 com essas mudanças.
+-- Cópia da versão da 0014 com essas mudanças (a 0015 e a 0016 não mexem nela).
 
 create or replace function public.admin_list_trips(
   p_search text default null,

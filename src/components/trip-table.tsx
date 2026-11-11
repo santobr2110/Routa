@@ -9,7 +9,8 @@ import type { TripStatus } from "@/types/database";
 /**
  * Tabela de viagens comum ao painel do organizador e ao admin.
  * Largura fixa (table-fixed) e 4–5 colunas que juntam informação, para nunca rolar para o lado:
- * Viagem (capa, título, destino, situação) · Quando · Comboio · Pagamento · atalhos.
+ * Viagem (capa, título, destino, situação) · [Organizador, só no admin] · Quando · Comboio ·
+ * Pagamento · atalhos.
  * No celular, a mesma informação vira cartões.
  */
 export type TripTableRow = {
@@ -17,8 +18,15 @@ export type TripTableRow = {
   href: string;
   title: string;
   destination: string;
-  /** Dono da viagem (só no admin). */
-  organizer?: { name: string; suspended?: boolean };
+  /** Dono da viagem (só no admin): coluna própria logo depois da viagem. */
+  organizer?: {
+    name: string;
+    /** Abre o usuário no admin. */
+    href?: string;
+    club?: string | null;
+    email?: string | null;
+    suspended?: boolean;
+  };
   /** URL da capa; undefined = a tabela não mostra capas. null = sem foto. */
   cover?: string | null;
   start_date: string;
@@ -61,6 +69,7 @@ export function TripTable({ rows, label }: { rows: TripTableRow[]; label: string
   const today = todayBR();
   const year = today.slice(0, 4);
   const hasLinks = rows.some((r) => r.links?.length);
+  const hasOrganizer = rows.some((r) => r.organizer);
   return (
     <>
       <div className="card hidden overflow-hidden md:block">
@@ -69,6 +78,9 @@ export function TripTable({ rows, label }: { rows: TripTableRow[]; label: string
           <thead>
             <tr className="border-b border-line bg-surface-muted/50 text-xs text-muted">
               <th scope="col" className="px-4 py-2 font-medium">Viagem</th>
+              {hasOrganizer && (
+                <th scope="col" className="w-[11rem] px-3 py-2 font-medium">Organizador</th>
+              )}
               <th scope="col" className="w-[8rem] px-3 py-2 font-medium">Quando</th>
               <th scope="col" className="w-[10.5rem] px-3 py-2 font-medium">Comboio</th>
               <th scope="col" className="hidden w-[10.5rem] px-3 py-2 font-medium xl:table-cell">Pagamento</th>
@@ -100,6 +112,11 @@ export function TripTable({ rows, label }: { rows: TripTableRow[]; label: string
                     </div>
                   </div>
                 </td>
+                {hasOrganizer && (
+                  <td className="px-3 py-3">
+                    {t.organizer && <OrganizerCell organizer={t.organizer} />}
+                  </td>
+                )}
                 <td className="px-3 py-3">
                   <p className="font-medium">
                     {formatShortRangeBR(t.start_date, t.end_date, year)}
@@ -142,7 +159,7 @@ export function TripTable({ rows, label }: { rows: TripTableRow[]; label: string
 
       <ul className="grid gap-2 md:hidden" aria-label={label}>
         {rows.map((t) => (
-          <li key={t.id} className="card space-y-3 p-3">
+          <li key={t.id} className="card min-w-0 space-y-3 p-3">
             <Link href={t.href} className="flex gap-3">
               {t.cover !== undefined && <Cover url={t.cover} className="h-14 w-14" />}
               <span className="min-w-0 flex-1 space-y-1">
@@ -153,6 +170,19 @@ export function TripTable({ rows, label }: { rows: TripTableRow[]; label: string
                 <Badges row={t} />
               </span>
             </Link>
+            {t.organizer && (
+              <p className="min-w-0 truncate text-sm">
+                <span className="text-muted">Organizador: </span>
+                {t.organizer.href ? (
+                  <Link href={t.organizer.href} className="font-medium text-accent">
+                    {t.organizer.name}
+                  </Link>
+                ) : (
+                  <span className="font-medium">{t.organizer.name}</span>
+                )}
+                {t.organizer.club && <span className="text-muted"> · {t.organizer.club}</span>}
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <Convoy row={t} />
               <Payment row={t} />
@@ -179,7 +209,32 @@ export function TripTable({ rows, label }: { rows: TripTableRow[]; label: string
 }
 
 function subtitle(t: TripTableRow) {
-  return t.organizer ? `${t.destination} · por ${t.organizer.name}` : t.destination;
+  return t.destination;
+}
+
+/** Quem organiza: nome (abre o usuário), clube e e-mail, sem estourar a coluna. */
+function OrganizerCell({ organizer: o }: { organizer: NonNullable<TripTableRow["organizer"]> }) {
+  return (
+    <div className="min-w-0 space-y-0.5">
+      {o.href ? (
+        <Link href={o.href} className="line-clamp-2 font-medium break-words hover:text-accent" title={o.name}>
+          {o.name}
+        </Link>
+      ) : (
+        <p className="line-clamp-2 font-medium break-words">{o.name}</p>
+      )}
+      {o.club && (
+        <p className="truncate text-xs text-ink-soft" title={o.club}>
+          {o.club}
+        </p>
+      )}
+      {o.email && (
+        <p className="truncate text-xs text-muted" title={o.email}>
+          {o.email}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function Badges({ row }: { row: TripTableRow }) {

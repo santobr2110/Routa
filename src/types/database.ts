@@ -1,5 +1,5 @@
 // Tipos do banco, no mesmo formato que o Supabase gera.
-// Escrito à mão a partir de supabase/migrations/ (até a 0016).
+// Escrito à mão a partir de supabase/migrations/ (até a 0017).
 // Quando o schema mudar, regenere com (veja o README):
 //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
 

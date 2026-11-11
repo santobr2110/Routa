@@ -107,6 +107,8 @@ A inscrição é aberta (sem login), então ela tem três proteções contra ins
 
 9. **Raio-X do comboio (migration `0016`):** rode depois da `0015`. Cria as perguntas do Raio-X nas viagens e as respostas dos inscritos; não precisa de mais nada.
 
+10. **Organizador na lista de viagens do admin (migration `0017`):** rode depois da `0016`. A lista do admin passa a mostrar o e-mail e o clube de quem organiza, e a busca encontra por eles.
+
 
 ### 4. Instalar e rodar
 

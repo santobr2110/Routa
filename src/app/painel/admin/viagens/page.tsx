@@ -75,13 +75,13 @@ export default async function AdminViagensPage({
         <input type="hidden" name="status" value={status} />
         <input type="hidden" name="periodo" value={period} />
         <label htmlFor="q" className="sr-only">
-          Buscar por título, destino ou organizador
+          Buscar por título, destino, organizador, e-mail ou clube
         </label>
         <input
           id="q"
           name="q"
           defaultValue={search}
-          placeholder="Título, destino ou organizador"
+          placeholder="Título, destino, organizador, e-mail ou clube"
           className="field-input mt-0 flex-1"
         />
         <button type="submit" className="btn-secondary w-auto shrink-0">
@@ -120,6 +120,10 @@ export default async function AdminViagensPage({
             destination: t.destination,
             organizer: {
               name: t.organizer_name,
+              href: `/painel/admin/usuarios/${t.organizer_id}`,
+              // Vazios até a 0017 ser aplicada.
+              club: t.organizer_club ?? null,
+              email: t.organizer_email ?? null,
               suspended: !!t.organizer_suspended_at,
             },
             start_date: t.start_date,

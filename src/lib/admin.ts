@@ -130,6 +130,9 @@ export type AdminTripRow = {
   organizer_id: string;
   organizer_name: string;
   organizer_suspended_at: string | null;
+  /** Migration 0017. */
+  organizer_email: string | null;
+  organizer_club: string | null;
   confirmed: number;
   waitlist: number;
   paid: number;
