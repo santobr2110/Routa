@@ -1,0 +1,223 @@
+From bf48e6f64e49f000caba0b9eec591473b68b84d3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 11 Nov 2026 08:11:12 -0300
+Subject: [PATCH] =?UTF-8?q?Admin:=20organizador=20vis=C3=ADvel=20na=20list?=
+ =?UTF-8?q?a=20de=20viagens?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Coluna Organizador logo depois da viagem, com nome (link para o usuário), clube e
+e-mail; no celular, uma linha própria. A busca encontra também por e-mail e clube.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PVB8ePDib2MVGLrmEYnrii
+---
+ CLAUDE.md                                     |  3 +-
+ src/app/painel/admin/viagens/page.tsx         | 51 ++++++++++++----
+ src/lib/admin.ts                              |  3 +
+ src/types/database.ts                         |  2 +-
+ .../migrations/0016_admin_trips_organizer.sql | 61 +++++++++++++++++++
+ 5 files changed, 105 insertions(+), 15 deletions(-)
+ create mode 100644 supabase/migrations/0016_admin_trips_organizer.sql
+
+diff --git a/CLAUDE.md b/CLAUDE.md
+index c03db82..1df11d5 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -96,7 +96,8 @@ Se uma tarefa parecer exigir algo desta lista, **pergunte antes**.
+ - **Página do clube (sessão 11, white label nível 1, migration `0012`):** 1 organizador = 1 página, grátis por enquanto (vira recurso do plano pago quando houver faturamento). Colunas `organizers.page_*` (ligada, endereço `/c/{page_slug}` com palavras reservadas, nome, descrição, cidade, Instagram, mostrar WhatsApp, cor, logo e capa; imagens no bucket trip-photos em `{organizer_id}/clube/`). `get_club_page` (pública) devolve identidade, selo Cadastur, números (viagens realizadas, viajantes levados, quem voltou), próximas viagens e as 12 últimas realizadas; some se a página estiver desligada ou o organizador suspenso. `get_public_trip` ganhou `club` (link, logo e cor) e agora vive na `0012`: copie dela ao alterar. Cor do clube: `src/lib/club-colors.ts` calcula as variáveis de `.club-theme` (globals.css) por modo, com contraste garantido (botão 3:1 com a página e texto do botão, hover e links 4,5:1); as cores da marca viraram variáveis (`--brand`, `--brand-dark`, `--on-brand`) e o texto do botão é `text-on-brand`. Editor em `/painel/clube` (menu "Página do clube"). A próxima migration é a `0013`.
+ - **Página do inscrito e mural (sessão 12, migration `0013`):** cada inscrição tem `registrations.access_token` (32 hex, 128 bits aleatórios) e uma página pessoal sem login em `/i/{token}` (`get_registration_page`, pública por token): vaga (confirmado, posição na fila, cancelado), pagamento (Pix/QR e cartão só para confirmados, prazo, pago), avisos do organizador, saída/retorno/roteiro, termo aceito e WhatsApp do organizador (desistência só falando com ele). A página não é indexada e usa `referrer: no-referrer` para o token não vazar em links externos. Mural: tabela `trip_updates` (RLS só do dono; o público não lê direto) e a seção "Mural da viagem" na aba Cobrança e avisos. O link vai: na tela de vaga garantida (`SaveLink` em `src/components/payment-box.tsx`, que também tem o `PaymentBox` usado nas duas telas), em todas as mensagens do organizador (`{link}`) e por e-mail (`src/lib/email.ts`, API do Resend sem biblioteca; liga sozinho com `RESEND_API_KEY` e `EMAIL_FROM`, e falha de envio nunca bloqueia a inscrição). `register_for_trip` agora vive na `0013` e devolve `access_token`: copie dela ao alterar.
+ - **Lixeira de viagens (sessão 13, migration `0014`):** excluir nunca apaga na hora. `trips.deleted_at/deleted_by/deleted_by_admin/deleted_reason`; o `DELETE` direto em `trips` foi revogado e as colunas `deleted_*` são protegidas no trigger `protect_moderation_columns`. A policy "own trips" exige `deleted_at is null`, então a viagem e tudo que depende dela (inscritos, fotos, mural) somem do organizador sozinhos. Funções: `delete_trip`, `restore_trip` (não restaura se `deleted_by_admin`), `list_deleted_trips` (lixeira + aviso de exclusão pela administração), `admin_delete_trip` (motivo obrigatório, auditoria `trip_deleted` com título), `admin_restore_trip`, `admin_list_trips` com filtro `deleted` (os outros filtros mostram só ativas) e `private.purge_deleted_trips()` (apaga depois de 30 dias; pg_cron `routa-lixeira`; caminhos das fotos ficam em `private.orphan_photos`, porque o Storage só apaga pela API). Confirmação em 3 passos (`src/components/delete-trip-form.tsx`): aviso com números e planilha, digitar EXCLUIR e senha (conferida no servidor por `checkPassword` em `src/lib/reauth.ts`). `get_public_trip`, `get_club_page`, `register_for_trip`, `get_registration_page` (ganhou `trip.deleted`) e `process_payment_deadlines` agora vivem na `0014`, assim como `admin_list_trips` e `admin_trip_detail`: copie dela ao alterar.
+-- **Raio-X do comboio (sessão 14, migration `0015`):** decisões do Bruno: experiência em faixas + terra, habilidades = mecânica, primeiros socorros e kit, margem de 20% na autonomia, perguntas ligadas e opcionais por padrão, completar depois pelo link pessoal, cilindrada pela tabela de modelos. Colunas `trips.convoy_range/convoy_experience/convoy_skills` (`off|optional|required`) e `longest_stretch_km`. Respostas em `convoy_profiles` (1 por inscrição; RLS: só o dono lê; ninguém grava direto). Grava só por `save_convoy_profile(token, …)` (anon, pelo token do link; confere obrigatórias e só guarda o que a viagem pergunta), chamada pela server action da inscrição depois de `register_for_trip` (falha não derruba a inscrição) e pela página do inscrito. `private.convoy_summary` = resumo anônimo (só contagens). Tabela de modelos em `src/lib/bike-specs.ts` (cc + estilo); regras, rótulos e alertas em `src/lib/convoy.ts` (`analyzeConvoy`); perguntas em `src/components/convoy-fields.tsx`; aba **Raio-X** em `/painel/viagens/[id]/raiox`; modelo "Pedir o Raio-X" na central de mensagens (`?modelo=raiox`). `get_public_trip` (ganhou `convoy`) e `get_registration_page` (ganhou `convoy` e `bike_brand/bike_model`) agora vivem na `0015`: copie dela ao alterar. A próxima migration é a `0016`.
++- **Raio-X do comboio (sessão 14, migration `0015`):** decisões do Bruno: experiência em faixas + terra, habilidades = mecânica, primeiros socorros e kit, margem de 20% na autonomia, perguntas ligadas e opcionais por padrão, completar depois pelo link pessoal, cilindrada pela tabela de modelos. Colunas `trips.convoy_range/convoy_experience/convoy_skills` (`off|optional|required`) e `longest_stretch_km`. Respostas em `convoy_profiles` (1 por inscrição; RLS: só o dono lê; ninguém grava direto). Grava só por `save_convoy_profile(token, …)` (anon, pelo token do link; confere obrigatórias e só guarda o que a viagem pergunta), chamada pela server action da inscrição depois de `register_for_trip` (falha não derruba a inscrição) e pela página do inscrito. `private.convoy_summary` = resumo anônimo (só contagens). Tabela de modelos em `src/lib/bike-specs.ts` (cc + estilo); regras, rótulos e alertas em `src/lib/convoy.ts` (`analyzeConvoy`); perguntas em `src/components/convoy-fields.tsx`; aba **Raio-X** em `/painel/viagens/[id]/raiox`; modelo "Pedir o Raio-X" na central de mensagens (`?modelo=raiox`). `get_public_trip` (ganhou `convoy`) e `get_registration_page` (ganhou `convoy` e `bike_brand/bike_model`) agora vivem na `0015`: copie dela ao alterar.
++- **Admin › Viagens mostra o organizador (migration `0016`):** `admin_list_trips` (agora na `0016`) devolve `organizer_email` e `organizer_club` e busca também por e-mail e nome do clube; coluna Organizador logo depois da viagem, com link para o usuário. A próxima migration é a `0017`.
+ 
+ ## 7. Identidade visual
+ 
+diff --git a/src/app/painel/admin/viagens/page.tsx b/src/app/painel/admin/viagens/page.tsx
+index 5c8b383..3358eea 100644
+--- a/src/app/painel/admin/viagens/page.tsx
++++ b/src/app/painel/admin/viagens/page.tsx
+@@ -81,7 +81,7 @@ export default async function AdminViagensPage({
+           id="q"
+           name="q"
+           defaultValue={search}
+-          placeholder="Título, destino ou organizador"
++          placeholder="Título, destino, organizador, e-mail ou clube"
+           className="field-input mt-0 flex-1"
+         />
+         <button type="submit" className="btn-secondary w-auto shrink-0">
+@@ -117,8 +117,8 @@ export default async function AdminViagensPage({
+               <thead>
+                 <tr className="border-b border-line bg-surface-muted/50 text-muted">
+                   <th className="px-4 py-2 font-medium">Viagem</th>
+-                  <th className="px-4 py-2 font-medium">Datas</th>
+                   <th className="px-4 py-2 font-medium">Organizador</th>
++                  <th className="px-4 py-2 font-medium">Datas</th>
+                   <th className="px-4 py-2 font-medium">Situação</th>
+                   <th className="px-4 py-2 font-medium">Ocupação</th>
+                   <th className="px-4 py-2 text-right font-medium">Fila</th>
+@@ -147,17 +147,12 @@ export default async function AdminViagensPage({
+                           {t.destination}
+                         </span>
+                       </td>
++                      <td className="max-w-56 px-4 py-2.5">
++                        <OrganizerCell t={t} />
++                      </td>
+                       <td className="px-4 py-2.5 whitespace-nowrap">
+                         {formatDateRangeBR(t.start_date, t.end_date)}
+                       </td>
+-                      <td className="px-4 py-2.5">
+-                        {t.organizer_name}
+-                        {t.organizer_suspended_at && (
+-                          <span className="ml-1.5">
+-                            <Badge tone="danger">Suspenso</Badge>
+-                          </span>
+-                        )}
+-                      </td>
+                       <td className="px-4 py-2.5">
+                         <div className="flex flex-wrap gap-1">
+                           <Badge
+@@ -231,9 +226,12 @@ export default async function AdminViagensPage({
+                     )}
+                   </div>
+                   <p className="text-sm text-muted">
+-                    {t.destination} ·{" "}
+-                    {formatDateRangeBR(t.start_date, t.end_date)} · por{" "}
+-                    {t.organizer_name}
++                    {t.destination} · {formatDateRangeBR(t.start_date, t.end_date)}
++                  </p>
++                  <p className="text-sm">
++                    <span className="text-muted">Organizador: </span>
++                    <span className="font-medium">{t.organizer_name}</span>
++                    {t.organizer_club && <span className="text-muted"> · {t.organizer_club}</span>}
+                   </p>
+                   <p className="text-sm text-ink-soft">
+                     {t.confirmed}/{t.capacity} confirmados
+@@ -308,3 +306,30 @@ function FilterRow<T extends string>({
+     </div>
+   );
+ }
++
++/** Quem organiza: nome (abre o usuário), clube e e-mail. */
++function OrganizerCell({ t }: { t: AdminTripRow }) {
++  return (
++    <div className="min-w-0">
++      <Link
++        href={`/painel/admin/usuarios/${t.organizer_id}`}
++        className="font-medium break-words hover:text-accent"
++      >
++        {t.organizer_name}
++      </Link>
++      {t.organizer_suspended_at && (
++        <span className="ml-1.5">
++          <Badge tone="danger">Suspenso</Badge>
++        </span>
++      )}
++      {t.organizer_club && (
++        <span className="block truncate text-xs text-ink-soft">{t.organizer_club}</span>
++      )}
++      {t.organizer_email && (
++        <span className="block truncate text-xs text-muted" title={t.organizer_email}>
++          {t.organizer_email}
++        </span>
++      )}
++    </div>
++  );
++}
+diff --git a/src/lib/admin.ts b/src/lib/admin.ts
+index 007cfea..79b6fc5 100644
+--- a/src/lib/admin.ts
++++ b/src/lib/admin.ts
+@@ -130,6 +130,9 @@ export type AdminTripRow = {
+   organizer_id: string;
+   organizer_name: string;
+   organizer_suspended_at: string | null;
++  /** Migration 0016. */
++  organizer_email: string | null;
++  organizer_club: string | null;
+   confirmed: number;
+   waitlist: number;
+   paid: number;
+diff --git a/src/types/database.ts b/src/types/database.ts
+index 36780fe..cdda968 100644
+--- a/src/types/database.ts
++++ b/src/types/database.ts
+@@ -1,5 +1,5 @@
+ // Tipos do banco, no mesmo formato que o Supabase gera.
+-// Escrito à mão a partir de supabase/migrations/ (até a 0015).
++// Escrito à mão a partir de supabase/migrations/ (até a 0016).
+ // Quando o schema mudar, regenere com (veja o README):
+ //   npx supabase gen types typescript --project-id <id> > src/types/database.ts
+ 
+diff --git a/supabase/migrations/0016_admin_trips_organizer.sql b/supabase/migrations/0016_admin_trips_organizer.sql
+new file mode 100644
+index 0000000..56b1982
+--- /dev/null
++++ b/supabase/migrations/0016_admin_trips_organizer.sql
+@@ -0,0 +1,61 @@
++-- Routa — lista de viagens do admin mostra de quem é cada viagem
++--
++-- admin_list_trips passa a devolver o e-mail do organizador e o nome do clube (quando a
++-- página do clube está ligada), e a busca também procura por e-mail e nome do clube.
++-- Cópia da versão da 0014 com essas mudanças.
++
++create or replace function public.admin_list_trips(
++  p_search text default null,
++  p_status text default 'all',     -- all | draft | published | closed | hidden | deleted
++  p_period text default 'all',     -- all | upcoming | past
++  p_limit int default 50,
++  p_offset int default 0
++)
++returns json language plpgsql stable security definer set search_path = '' as $$
++declare
++  v_q text := nullif(trim(coalesce(p_search, '')), '');
++  v_today date := (now() at time zone 'America/Sao_Paulo')::date;
++  v_result json;
++begin
++  perform private.require_admin();
++
++  with base as (
++    select t.id, t.slug, t.title, t.destination, t.start_date, t.end_date, t.status,
++      t.capacity, t.pricing_mode, t.created_at, t.admin_hidden_at,
++      t.deleted_at, t.deleted_by_admin,
++      t.organizer_id, o.name as organizer_name, o.suspended_at as organizer_suspended_at,
++      u.email as organizer_email,
++      case when o.page_enabled then o.page_name end as organizer_club,
++      (select count(*) from public.registrations r
++       where r.trip_id = t.id and r.status = 'confirmed') as confirmed,
++      (select count(*) from public.registrations r
++       where r.trip_id = t.id and r.status = 'waitlist') as waitlist,
++      (select count(*) from public.registrations r
++       where r.trip_id = t.id and r.status = 'confirmed' and r.payment_status = 'paid') as paid
++    from public.trips t
++    join public.organizers o on o.id = t.organizer_id
++    left join auth.users u on u.id = t.organizer_id
++    where (v_q is null or t.title ilike '%' || v_q || '%' or t.destination ilike '%' || v_q || '%'
++           or o.name ilike '%' || v_q || '%' or t.slug ilike '%' || v_q || '%'
++           or u.email ilike '%' || v_q || '%' or o.page_name ilike '%' || v_q || '%')
++      -- A lixeira só aparece no filtro "deleted"; os outros filtros mostram só viagens ativas.
++      and (case when p_status = 'deleted' then t.deleted_at is not null
++                else t.deleted_at is null end)
++      and (coalesce(p_status, 'all') in ('all', 'deleted')
++           or (p_status = 'hidden' and t.admin_hidden_at is not null)
++           or (p_status in ('draft', 'published', 'closed') and t.status = p_status))
++      and (coalesce(p_period, 'all') = 'all'
++           or (p_period = 'upcoming' and t.end_date >= v_today)
++           or (p_period = 'past' and t.end_date < v_today))
++  )
++  select json_build_object(
++    'total', (select count(*) from base),
++    'rows', coalesce((
++      select json_agg(b order by b.start_date desc)
++      from (select * from base order by start_date desc
++            limit least(greatest(p_limit, 1), 200) offset greatest(p_offset, 0)) b
++    ), '[]'::json)
++  ) into v_result;
++  return v_result;
++end $$;
++
+-- 
+2.43.0
+
