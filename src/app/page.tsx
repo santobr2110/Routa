@@ -94,11 +94,11 @@ export default async function Home() {
         <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-end px-5 pt-10 pb-14 sm:px-8 md:justify-center md:pb-24">
           <div className="max-w-2xl space-y-6">
             <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium tracking-wide text-white/85 uppercase ring-1 ring-white/15 backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-400" aria-hidden />
+              <span className="h-1.5 w-1.5 rounded-full bg-hero-accent" aria-hidden />
               Para quem organiza viagens de moto em grupo
             </p>
             <h1 className="text-5xl leading-[1.02] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
-              Bora de cara <span className="text-orange-300">pro vento?</span>
+              Bora de cara <span className="text-hero-accent">pro vento?</span>
             </h1>
             <p className="max-w-xl text-lg text-white/85 sm:text-xl">
               Você junta a galera. A Routa cuida das inscrições, do Pix, da fila de espera e do
@@ -108,7 +108,7 @@ export default async function Home() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href={primary.href}
-                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 text-lg font-semibold text-white shadow-lg shadow-orange-950/30 transition hover:bg-orange-400"
+                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-hero-brand px-6 text-lg font-semibold text-hero-on-brand shadow-lg shadow-black/30 transition hover:brightness-110"
               >
                 {primary.label}
                 <span aria-hidden>→</span>
@@ -193,7 +193,7 @@ export default async function Home() {
               ["3", "Acelera", "Pagamentos, fila e avisos no seu painel. No dia, você só confere quem chegou e dá a saída."],
             ].map(([n, title, text]) => (
               <li key={n} className="relative space-y-3 md:text-center">
-                <span className="relative z-10 inline-flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-xl font-bold text-white ring-8 ring-page">
+                <span className="relative z-10 inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand text-xl font-bold text-on-brand ring-8 ring-page">
                   {n}
                 </span>
                 <h3 className="text-xl font-semibold">{title}</h3>
@@ -244,7 +244,7 @@ export default async function Home() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => (
               <li key={f.title} className="card space-y-3 p-6 transition hover:-translate-y-0.5 hover:shadow-md">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-300">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-accent">
                   <FeatureIcon name={f.icon} />
                 </span>
                 <h3 className="text-lg font-semibold">{f.title}</h3>
@@ -275,7 +275,7 @@ export default async function Home() {
             </p>
             <Link
               href={primary.href}
-              className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 text-lg font-semibold text-white hover:bg-orange-400"
+              className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-hero-brand px-6 text-lg font-semibold text-hero-on-brand hover:brightness-110"
             >
               {loggedIn ? primary.label : "Quero organizar minha viagem"}
               <span aria-hidden>→</span>

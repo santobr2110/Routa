@@ -243,7 +243,7 @@ body {
   border-radius: 999px;
   background: repeating-linear-gradient(
     90deg,
-    var(--color-orange-400) 0 18px,
+    var(--hero-accent) 0 18px,
     transparent 18px 32px
   );
   opacity: 0.6;
